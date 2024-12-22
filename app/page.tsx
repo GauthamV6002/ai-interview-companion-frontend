@@ -19,7 +19,10 @@ const callId = "test-call-1";
 const user_id = "csb-" + Math.random().toString(16).substring(2);
 const user = { id: user_id };
 
+// demo key from stream.io, not a problem if public
 const apiKey = "mmhfdzb5evj2";
+
+
 const tokenProvider = async () => {
   const { token } = await fetch(
     "https://pronto.getstream.io/api/auth/create-token?" +
