@@ -1,79 +1,37 @@
 "use client"
-import { useEffect, useState } from "react";
-import {
-  Call,
-  CallControls,
-  StreamCall,
-  StreamTheme,
-  StreamVideo,
-  SpeakerLayout,
-  StreamVideoClient
-} from "@stream-io/video-react-sdk";
-import "@stream-io/video-react-sdk/dist/css/styles.css";
-// import "./styles.css";
+import React from "react";
 
-// NOTE: This will generate a new call on every reload
-// Fork this CodeSandbox and set your own CallID if
-// you want to test with multiple users or multiple tabs opened
-const callId = "test-call-1";
-const user_id = "csb-" + Math.random().toString(16).substring(2);
-const user = { id: user_id };
+import VideoChat from "@/components/VideoChat/VideoChat";
 
-// demo key from stream.io, not a problem if public
-const apiKey = "mmhfdzb5evj2";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
+import RealtimeAssistancePanel from "@/components/AssistancePanel/RealtimeAssistance/RealtimeAssistancePanel";
+import ProtocolPanel from "@/components/AssistancePanel/PostInterviewAssistance/ProtocolPanel";
 
-const tokenProvider = async () => {
-  const { token } = await fetch(
-    "https://pronto.getstream.io/api/auth/create-token?" +
-      new URLSearchParams({
-        api_key: apiKey,
-        user_id: user_id
-      })
-  ).then((res) => res.json());
-  return token as string;
-};
+export default function App() {
 
-export default function Home() {
-  const [client, setClient] = useState<StreamVideoClient>();
-  const [call, setCall] = useState<Call>();
+    const { configurationMode, participantID, setConfigurationMode, setParticipantID } = useAuth();
 
-  useEffect(() => {
-    const myClient = new StreamVideoClient({ apiKey, user, tokenProvider });
-    setClient(myClient);
-    return () => {
-      myClient.disconnectUser();
-      setClient(undefined);
-    };
-  }, []);
+    const router = useRouter();
 
-  useEffect(() => {
-    if (!client) return;
-    const myCall = client.call("default", callId);
-    myCall.join({ create: true }).catch((err) => {
-      console.error(`Failed to join the call`, err);
-    });
+    React.useEffect(() => {
+        if (participantID === 0) {
+            // Not using next router in order to reset camera-related state
+            window.location.href = "/login";
+            // router.push("/")
+        }
+    }, []);
 
-    setCall(myCall);
+    return (
+        <div className="p-4 h-screen flex items-center gap-8">
+            <div className="w-1/2 h-[90vh]">
+                <VideoChat />
+            </div>
 
-    return () => {
-      setCall(undefined);
-      myCall.leave().catch((err) => {
-        console.error(`Failed to leave the call`, err);
-      });
-    };
-  }, [client]);
-
-  if (!client || !call) return null;
-
-  return (
-    <StreamVideo client={client}>
-      <StreamTheme className="my-theme-overrides">
-        <StreamCall call={call}>
-          <SpeakerLayout />
-          <CallControls />
-        </StreamCall>
-      </StreamTheme>
-    </StreamVideo>
-  );
+            <div className="w-1/2 h-[90vh]">
+                {(configurationMode === "mode_a") ? <ProtocolPanel /> : <RealtimeAssistancePanel />}
+            </div>
+        </div>
+    );
 }
