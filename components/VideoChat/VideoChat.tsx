@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 
 
 // public stream data
-const callId = "csb-" + Math.random().toString(16).substring(2);
+const callId = "csb-test";
 const user_id = "csb-user";
 const user = { id: user_id };
 
