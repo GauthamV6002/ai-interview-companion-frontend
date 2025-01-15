@@ -18,18 +18,30 @@ import { useAuth } from '@/context/AuthContext';
 
 
 // public stream data
-const apiKey = 'mmhfdzb5evj2';
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3Byb250by5nZXRzdHJlYW0uaW8iLCJzdWIiOiJ1c2VyL0RhcnRoX1ZhZGVyIiwidXNlcl9pZCI6IkRhcnRoX1ZhZGVyIiwidmFsaWRpdHlfaW5fc2Vjb25kcyI6NjA0ODAwLCJpYXQiOjE3MzYzNzQ5ODcsImV4cCI6MTczNjk3OTc4N30.7-WZzgMGL0_4V3iqKPtGY-c-icO38t9b_QqR_0kAbls';
-const userId = 'Darth_Vader';
-const callId = 'tCtEexQJZjOI';
+const callId = "csb-" + Math.random().toString(16).substring(2);
+const user_id = "csb-user";
+const user = { id: user_id };
 
-const user: User = {
-    id: userId,
-    name: "test_name",
-    image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
-};
+const apiKey = "mmhfdzb5evj2";
 
-const client = new StreamVideoClient({ apiKey, user, token });
+const tokenProvider = async () => {
+    const { token } = await fetch(
+      "https://pronto.getstream.io/api/auth/create-token?" +
+        new URLSearchParams({
+          api_key: apiKey,
+          user_id: user_id
+        })
+    ).then((res) => res.json());
+    return token as string;
+  };
+
+// const user: User = {
+//     id: userId,
+//     name: "test_name",
+//     image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
+// };
+
+const client = new StreamVideoClient({ apiKey, user, tokenProvider });
 const call = client.call('default', callId);
 call.join({ create: true });
 

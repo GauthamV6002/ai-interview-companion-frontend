@@ -22,10 +22,10 @@ const ProtocolPanel = (props: Props) => {
                 </CardDescription>
             </CardHeader>
             <CardContent className='flex flex-col gap-2'>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                     {
                         protocol.map((question, q_index) => (
-                            <AccordionItem className='border-b-[px] border-b-white/10' value={`item-${q_index}`} key={q_index}>
+                            <AccordionItem className='border-b-white/10' value={`item-${q_index}`} key={q_index}>
                                 <AccordionTrigger>{question.question}</AccordionTrigger>
                                 <AccordionContent className=''>
                                     {
