@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
-  const [participantID, setParticipantID] = useState<Number>(0);
+  const [participantID, setParticipantID] = useState<Number>(12345);
   const [configurationMode, setConfigurationMode] = useState<ConfigurationMode>(null);
   const [protocol, setProtocol] = useState<Protocol>([]);
 

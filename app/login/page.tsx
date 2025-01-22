@@ -103,7 +103,7 @@ const page = (props: Props) => {
                         (!participantID || !configurationMode || !(protocol.length)) ?
                         <Button disabled className='mt-6'>Please fill out all fields.</Button>
                         :
-                        // <Link className='w-full' href={"/"}></Link>
+                        // <Link className='w-full' href={"/"}>Continue</Link>
                         <Button onClick={() => router.push("/")} className='w-full mt-6'>Continue</Button>
                     }
 
