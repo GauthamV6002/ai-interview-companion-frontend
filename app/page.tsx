@@ -16,9 +16,9 @@ export default function App() {
     const router = useRouter();
 
     React.useEffect(() => {
-        if (participantID === 0) {
+        if (participantID === 12345 || !configurationMode) {
             // Not using next router in order to reset camera-related state
-            // window.location.href = "/login";
+            window.location.href = "/login";
         }
     }, []);
 
