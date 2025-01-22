@@ -8,8 +8,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useAuth } from '@/context/AuthContext'
 import { Textarea } from '@/components/ui/textarea'
 
+import { RefreshCw } from 'lucide-react'
+
+
+
 const RealtimeAssistancePanel = (props: Props) => {
-    
+
     const { protocol } = useAuth();
 
     return (
@@ -18,14 +22,26 @@ const RealtimeAssistancePanel = (props: Props) => {
                 <CardTitle className='text-3xl'>AI Assistant</CardTitle>
                 <CardDescription className='flex gap-2 items-center'>
                     <div className='size-1 bg-green-500 rounded-full'></div> AI Assistance Enabled
+
                 </CardDescription>
             </CardHeader>
             <CardContent className='flex flex-col gap-2'>
-            <Accordion type="multiple" className="w-full">
+
+                <div className='p-4 border-[0.5px] border-white/20 flex flex-row justify-start items-center gap-2 rounded-lg'>
+                    <div className='size-2 bg-green-500 rounded-full'></div> <h3 className='text-lg'>Great job with that question!</h3>
+                </div>
+                <div className='flex justify-evenly'>
+                    <Button>Ask a follow-up</Button>
+                    <Button>Next Question</Button>
+                </div>
+                <Accordion type="multiple" className="w-full">
                     {
                         protocol.map((question, q_index) => (
                             <AccordionItem className=' border-b-white/10' value={`item-${q_index}`} key={q_index}>
-                                <AccordionTrigger>{question.question}</AccordionTrigger>
+                                <AccordionTrigger className='flex flex-row justify-start gap-3'>
+                                    <RefreshCw className='hover:scale-110 hover:cursor-pointer' />
+                                    <p>{question.question}</p>
+                                </AccordionTrigger>
                                 <AccordionContent className=''>
                                     {
                                         question.followUps.map((followUp, f_index) => (
