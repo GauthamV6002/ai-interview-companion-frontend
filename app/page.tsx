@@ -1,5 +1,5 @@
 "use client"
-import React from "react";
+import React, { useState } from "react";
 
 import VideoChat from "@/components/VideoChat/VideoChat";
 
@@ -12,6 +12,8 @@ import ProtocolPanel from "@/components/AssistancePanel/PostInterviewAssistance/
 export default function App() {
 
     const { configurationMode, participantID, setConfigurationMode, setParticipantID } = useAuth();
+    const [transcript, setTranscript] = useState<string>("");
+    
 
     const router = useRouter();
 
@@ -25,11 +27,11 @@ export default function App() {
     return (
         <div className="p-4 h-screen flex items-center gap-8">
             <div className="w-1/2 h-[90vh]">
-                <VideoChat />
+                <VideoChat transcript={transcript} setTranscript={setTranscript}/>
             </div>
 
             <div className="w-1/2 h-[90vh]">
-                {(configurationMode === "mode_a") ? <ProtocolPanel /> : <RealtimeAssistancePanel />}
+                {(configurationMode === "mode_a") ? <ProtocolPanel /> : <RealtimeAssistancePanel transcript={transcript} />}
             </div>
         </div>
     );

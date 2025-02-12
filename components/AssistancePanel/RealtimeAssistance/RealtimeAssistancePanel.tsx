@@ -2,7 +2,6 @@ import React, { use, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card'
 import { Button } from '../../ui/button'
 
-type Props = {}
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useAuth } from '@/context/AuthContext'
@@ -11,8 +10,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { RefreshCw } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 
+type Props = {
+    transcript: string;
+}
 
-const RealtimeAssistancePanel = (props: Props) => {
+const RealtimeAssistancePanel = ({transcript} : Props) => {
 
     const { protocol } = useAuth();
 
@@ -39,6 +41,13 @@ const RealtimeAssistancePanel = (props: Props) => {
                 <div className='flex justify-start gap-3 mb-4'>
                     <Button onClick={handleGetFollowUp}>Generate follow-up</Button>
                     <Button onClick={handleNextQuestion}>Next best question</Button>
+                </div>
+
+                <div className='my-4 border-1 '>
+                    <h3>AI Feedback</h3>
+                    <p>
+                        {transcript}
+                    </p>
                 </div>
 
                 <div className="flex flex-col gap-2">

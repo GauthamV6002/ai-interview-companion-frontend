@@ -94,8 +94,8 @@ export default function App() {
 
   function setSessionConfig() {
 
-    const message = { 
-      type: "session.update",   
+    const message = {
+      type: "session.update",
       session: {
         turn_detection: null
       }, 
@@ -125,8 +125,8 @@ export default function App() {
     };
 
     sendClientEvent(event);
-    sendClientEvent({ 
-      type: "response.create",   
+    sendClientEvent({
+      type: "response.create",
         response: {
         modalities: [ "text" ]
       }, 
