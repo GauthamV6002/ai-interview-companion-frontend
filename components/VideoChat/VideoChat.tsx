@@ -108,9 +108,9 @@ export default function VideoChat({ transcript, setTranscript }: { transcript: s
                     </StreamVideo>
                 </div>
             </CardContent>
-            {/* <CardFooter>
+            <CardFooter>
                 <p className="text-sm">{transcript}</p>
-            </CardFooter> */}
+            </CardFooter>
             
         </Card>
     );
