@@ -11,6 +11,9 @@ export async function GET(req: Request) {
         headers: {
             "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
             "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*", // Allow all origins
+            // "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Allow specific methods
+            // "Access-Control-Allow-Headers": "Content-Type, Authorization" // Allow specific headers
         },
         body: JSON.stringify({
             model: "gpt-4o-realtime-preview",

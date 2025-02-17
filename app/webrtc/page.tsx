@@ -185,7 +185,12 @@ const VideoChat = () => {
 
   async function startSession() {
     // Get an ephemeral key from the Fastify server
-    const tokenResponse = await fetch("/api/session");
+    const tokenResponse = await fetch("/api/session", {
+      mode: 'cors',
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      }
+    });
     const data = await tokenResponse.json();
     console.log(data)
     const EPHEMERAL_KEY = data.client_secret.value;
@@ -222,6 +227,7 @@ const VideoChat = () => {
       headers: {
         Authorization: `Bearer ${EPHEMERAL_KEY}`,
         "Content-Type": "application/sdp",
+        "Access-Control-Allow-Origin": "*", // Allow all origins
       },
     });
 
