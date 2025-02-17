@@ -30,6 +30,8 @@ export default function App() {
     pc.ontrack = (e) => (audioElement.current.srcObject = e.streams[0]);
 
     // Add local audio track for microphone input in the browser
+    console.log('navigator', navigator);
+    console.log('media devices', navigator?.mediaDevices);
     const ms = await navigator.mediaDevices.getUserMedia({
       audio: true,
     });
