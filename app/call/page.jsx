@@ -94,10 +94,13 @@ export default function App() {
 
   function setSessionConfig() {
 
-    const message = {
-      type: "session.update",
+    const message = { 
+      type: "session.update",   
       session: {
-        turn_detection: null
+        turn_detection: {
+          type: "server_vad",
+          create_response: false
+        }
       }, 
     }
 
@@ -124,19 +127,7 @@ export default function App() {
       },
     };
 
-    sendClientEvent(event);
-    sendClientEvent({
-      type: "response.create",
-        response: {
-        modalities: [ "text" ]
-      }, 
-    });
-  }
-
-  function sendAudioInput() {
-    const event = {
-      type: "input_audio_buffer.commit"
-    }
+    console.log("from chat?", dataChannel.readyState);
 
     sendClientEvent(event);
     sendClientEvent({ 
@@ -147,11 +138,40 @@ export default function App() {
     });
   }
 
+  function sendAudioInput() {
+    const event = {
+      type: "input_audio_buffer.commit"
+    }
+    sendClientEvent(event);
+    sendClientEvent({ 
+      type: "response.create",   
+        response: {
+        modalities: [ "text" ]
+      }, 
+    });
+  }
+
+  
+  function generateTextResponse() {
+    sendClientEvent({ 
+      type: "response.create",   
+      response: {
+        modalities: [ "text" ],
+        "max_output_tokens": 128
+      },
+    });
+  }
+
   // Attach event listeners to the data channel when a new one is created
   useEffect(() => {
     if (dataChannel) {
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
+        if(JSON.parse(e.data).type === "input_audio_buffer.committed") {
+          console.log("respond!");
+          // TODO: set delay so it doesn't go off again, use a setTimeout on useState
+          generateTextResponse();
+        }
         setEvents((prev) => [JSON.parse(e.data), ...prev]);
       });
 
@@ -159,6 +179,7 @@ export default function App() {
       dataChannel.addEventListener("open", () => {
         setIsSessionActive(true);
         setEvents([]);
+        console.log("from open thing", dataChannel.readyState);
         setSessionConfig();
       });
 
