@@ -72,6 +72,7 @@ export default function RoomPage() {
                     console.log('Received remote track:', event.track.kind);
                     if (remoteVideoRef.current && event.streams[0]) {
                         console.log('Setting remote stream');
+                        // todo
                         remoteVideoRef.current.srcObject = event.streams[0];
                     }
                 };
@@ -333,7 +334,7 @@ export default function RoomPage() {
             </div>
 
             <div className="w-1/2 h-[90vh]">
-                <RealtimeAssistancePanel callID={roomId} />
+                <RealtimeAssistancePanel remoteVideoRef={remoteVideoRef} />
             </div>
         </div>
     );
