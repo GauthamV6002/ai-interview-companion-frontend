@@ -1,117 +1,108 @@
-import { useEffect, useState } from "react";
-import {
-    Call,
-    CallControls,
-    StreamCall,
-    StreamTheme,
-    StreamVideo,
-    SpeakerLayout,
-    StreamVideoClient, 
-} from "@stream-io/video-react-sdk";
-import "@stream-io/video-react-sdk/dist/css/styles.css";
+import { RefObject, useEffect, useState } from "react";
 
-import { useCallStateHooks } from "@stream-io/video-react-sdk";
-import { type CallClosedCaption } from "@stream-io/video-react-sdk";
-
-
-import UILayout from './UILayout';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '../ui/card';
+
 import { useAuth } from '@/context/AuthContext';
+import { Button } from "../ui/button";
 
-// NOTE: This will generate a new call on every reload
-// Fork this CodeSandbox and set your own CallID if
-// you want to test with multiple users or multiple tabs opened
-const callId = "ai-interview-companion-test-call"
+interface VideoChatProps {
+    localVideoRef: React.RefObject<HTMLVideoElement | null>;
+    remoteVideoRef: React.RefObject<HTMLVideoElement | null>;
+    peerJoined: boolean;
+    connectionStatus: string;
+    isCaller: boolean;
+    roomId: string;
+}
 
-
-// apikey can be public as stream uses JWT auth with hidden secret keys
-const apiKey = "wqk6rk42ud7w";
-
-
-
-export default function VideoChat({ transcript, setTranscript }: { transcript: string; setTranscript: React.Dispatch<React.SetStateAction<string>>; }) {
-    const [client, setClient] = useState<StreamVideoClient>();
-    const [call, setCall] = useState<Call>();
-
-    // const { useCallClosedCaptions } = useCallStateHooks();
-    // const closedCaptions = useCallClosedCaptions();
-
-    const {configurationMode, participantID, setConfigurationMode, setParticipantID} = useAuth();
-
-    useEffect(() => {
-        console.log("wtf1")
-
-        const userId = String(participantID);
-        const user = { id: userId };
-
-        (async () => {
-            const response = await fetch("/api/getToken", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ userId: String(participantID) })
-            });
-            const data = await response.json();
-            
-            // this crap too way too long
-            const client = StreamVideoClient.getOrCreateInstance({ apiKey, user, token: data.token });
-            setClient(client);
-        })()
-        
-
-        return () => {
-            if (!client) return;
-            client.disconnectUser();
-            setClient(undefined);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!client) return;
-        const myCall = client.call("default", callId);
-        myCall.join({ create: true }).catch((err) => {
-            console.error(`Failed to join the call`, err);
-        });
-        
-        // async () => {
-        //     await myCall.startClosedCaptions();
-        // }
-        
-        const unsubscribe = myCall.on("call.closed_caption", (e) => {
-            console.log("Closed caption event:", e);
-            setTranscript((prevTranscript) => `${prevTranscript} \n ${e.closed_caption.text}`);
-
-        });
-        
-        setCall(myCall);
-
-        return () => {
-            setCall(undefined);
-            unsubscribe();
-            myCall.leave().catch((err) => {
-                console.error(`Failed to leave the call`, err);
-            });
-        };
-    }, [client]);
-
-    if (!client || !call) return null;
-
+export default function VideoChat({
+    localVideoRef,
+    remoteVideoRef,
+    peerJoined,
+    connectionStatus,
+    isCaller,
+    roomId
+}: VideoChatProps) {
     return (
-        <Card className='p-4 h-full flex flex-col justify-center items-center'>
-            <CardContent>
-                <div className='w-[90%]'>
-                    <StreamVideo client={client}>
-                        <StreamCall call={call}>
-                            <UILayout />
-                        </StreamCall>
-                    </StreamVideo>
+        // <div className="flex flex-col space-y-4">
+        //     <div className="flex justify-between items-center mb-4">
+        //         <h2 className="text-xl font-semibold">Video Chat</h2>
+        //         <div className="flex items-center space-x-2">
+        //             <span className={`h-3 w-3 rounded-full ${
+        //                 connectionStatus === 'connected' ? 'bg-green-500' :
+        //                 connectionStatus === 'connecting' ? 'bg-yellow-500' :
+        //                 'bg-red-500'
+        //             }`} />
+        //             <span className="text-sm">
+        //                 {connectionStatus === 'waiting' && (isCaller ? 'Waiting for peer to join...' : 'Joining call...')}
+        //                 {connectionStatus === 'connecting' && 'Connecting...'}
+        //                 {connectionStatus === 'connected' && 'Connected'}
+        //                 {connectionStatus === 'disconnected' && 'Disconnected'}
+        //             </span>
+        //         </div>
+        //     </div>
+
+        //     <div className="grid grid-cols-2 gap-4">
+        //         <div className="relative">
+        //             <video
+        //                 ref={localVideoRef}
+        //                 autoPlay
+        //                 playsInline
+        //                 muted
+        //                 className="w-full bg-black rounded"
+        //             />
+        //             <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded">
+        //                 You
+        //             </span>
+        //         </div>
+        //         <div className="relative">
+        //             <video
+        //                 ref={remoteVideoRef}
+        //                 autoPlay
+        //                 playsInline
+        //                 className="w-full bg-black rounded"
+        //             />
+        //             {!peerJoined && (
+        //                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">
+        //                     Waiting for peer...
+        //                 </div>
+        //             )}
+        //             {peerJoined && (
+        //                 <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded">
+        //                     Peer
+        //                 </span>
+        //             )}
+        //         </div>
+        //     </div>
+        // </div>
+
+        <Card className='h-full flex-col flex'>
+            <CardHeader>
+                <CardTitle>Room ID: {roomId}</CardTitle>
+            </CardHeader>
+            <CardContent className="">
+                <div className="relative"> {/* Set a height for the container */}
+                    <video
+                        ref={remoteVideoRef}
+                        autoPlay
+                        playsInline
+                        className="rounded-2xl absolute w-full right-[50%] translate-x-[50%] border-white border-4"
+                    />
+                    <video
+                        ref={localVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="rounded-2xl absolute border-red-500 border-4 w-[25%] right-[2%] translate-x-[2%] top-2"
+                    />
                 </div>
             </CardContent>
-            <CardFooter>
-                <p className="text-sm">{transcript}</p>
-            </CardFooter>
-            
+            <div className="flex w-full justify-center gap-2 mt-auto mb-5"> {/* Added margin-top to create space below the video */}
+                    <Button>1</Button>
+                    <Button>2</Button>
+                    <Button>3</Button>
+                </div>
         </Card>
+
+
     );
 }

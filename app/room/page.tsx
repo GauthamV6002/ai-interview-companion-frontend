@@ -10,7 +10,7 @@ export default function HomePage() {
 
   const handleCreateRoom = async () => {
     // Generate a random room ID
-    const newRoomId = Math.random().toString(36).substring(2, 15);
+    const newRoomId = Math.random().toString(36).substring(2, 7);
     // Pass a query param (caller=true) to indicate that this user is creating the room
     router.push(`/room/${newRoomId}?caller=true`);
   };
