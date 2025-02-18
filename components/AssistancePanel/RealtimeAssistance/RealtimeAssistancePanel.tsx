@@ -13,10 +13,10 @@ import { Separator } from '@/components/ui/separator'
 
 type Props = {
     localStream: MediaStream | null;
-    remoteAudioTrackRef: RefObject<MediaStreamTrack | null>
+    remoteAudioStream: MediaStream | null;
 }
 
-const RealtimeAssistancePanel = ({ localStream, remoteAudioTrackRef }: Props) => {
+const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
 
     const { protocol } = useAuth();
 
@@ -56,30 +56,34 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioTrackRef }: Props) =>
             // Create a peer connection
             const pc = new RTCPeerConnection();
 
-            // Create a new MediaStream to combine both audio tracks
-            const combinedStream = new MediaStream();
-            combinedStreamRef.current = combinedStream;
+            // Create Audio Context for mixing
+            const audioContext = new AudioContext();
+            const destination = audioContext.createMediaStreamDestination();
 
-            if(localStream) {
-                const localAudioTrack = localStream.getAudioTracks()[0];
-                combinedStream.addTrack(localAudioTrack);
+            // Add local audio to the mix
+            if (localStream) {
+                const localSource = audioContext.createMediaStreamSource(localStream);
+                localSource.connect(destination);
+                console.log('Added local audio to mix');
             } else {
-                console.log('ERROR: localstream is null')
+                console.log('ERROR: localStream is null');
             }
 
-            // Add remote audio track if available
-            if (remoteAudioTrackRef.current) {
-                console.log('Adding remote audio track to combined stream');
-                combinedStream.addTrack(remoteAudioTrackRef.current);
+            // Add remote audio to the mix
+            if (remoteAudioStream) {
+                const remoteSource = audioContext.createMediaStreamSource(remoteAudioStream);
+                remoteSource.connect(destination);
+                console.log('Added remote audio to mix');
             } else {
-                console.warn("Remote audio track not available");
+                console.log('ERROR: remoteAudioStream is null');
             }
 
-            // Add the combined stream to the peer connection
-            combinedStream.getTracks().forEach(track => {
-                console.log('Adding track to OpenAI peer connection:', track.kind, track.label);
-                pc.addTrack(track, combinedStream);
-            });
+            // Get the mixed audio track
+            const mixedTrack = destination.stream.getAudioTracks()[0];
+            console.log('Created mixed audio track:', mixedTrack.label);
+
+            // Add the mixed track to the peer connection
+            pc.addTrack(mixedTrack);
 
             // Set up data channel
             const dc = pc.createDataChannel("oai-events");
@@ -110,6 +114,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioTrackRef }: Props) =>
 
             peerConnection.current = pc;
             console.log('OpenAI session started successfully');
+
+            // Store audio context for cleanup
+            combinedStreamRef.current = destination.stream;
 
         } catch (error) {
             console.error('Error starting OpenAI session:', error);

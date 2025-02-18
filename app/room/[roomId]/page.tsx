@@ -36,7 +36,7 @@ export default function RoomPage() {
     const [peerJoined, setPeerJoined] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<string>('waiting');
 
-    const remoteAudioTrackRef = useRef<MediaStreamTrack>(null);
+    const [remoteAudioStream, setRemoteAudioStream] = useState<MediaStream | null>(null)
 
     const remoteDescriptionSet = useRef(false);
 
@@ -76,12 +76,17 @@ export default function RoomPage() {
                         console.log('Setting remote stream');
 
                         if(event.track.kind === "audio") {
-                            remoteAudioTrackRef.current =  event.track;
+                            const ms = new MediaStream();
+                            ms.addTrack(event.track);
+                            setRemoteAudioStream(ms);
                         }
+
                         
                         remoteVideoRef.current.srcObject = event.streams[0];
                     }
                 };
+
+                
 
                 // Get local media stream
                 try {
@@ -341,7 +346,7 @@ export default function RoomPage() {
             </div>
 
             <div className="w-1/2 h-[90vh]">
-                <RealtimeAssistancePanel localStream={localStream} remoteAudioTrackRef={remoteAudioTrackRef} />
+                <RealtimeAssistancePanel localStream={localStream} remoteAudioStream={remoteAudioStream} />
             </div>
         </div>
     );
