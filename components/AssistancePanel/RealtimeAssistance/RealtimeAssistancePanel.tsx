@@ -28,6 +28,8 @@ const RealtimeAssistancePanel = ({ remoteAudioTrackRef }: Props) => {
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [events, setEvents] = useState([]);
 
+    const combinedStreamRef = useRef<MediaStream | null>(null);
+
     const handleNextQuestion = () => {
         setSelectedQuestion((prev) => Math.min(prev + 1, protocol.length - 1));
         setFollowUpGenerated(false);
@@ -39,74 +41,78 @@ const RealtimeAssistancePanel = ({ remoteAudioTrackRef }: Props) => {
 
 
     async function startSession() {
-        // Get an ephemeral key from api route
-        const tokenResponse = await fetch("/api/session", {
-            mode: 'cors',
-            headers: {
-                "Access-Control-Allow-Origin": "*",
+        try {
+            // Get ephemeral key
+            const tokenResponse = await fetch("/api/session", {
+                mode: 'cors',
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                }
+            });
+            const data = await tokenResponse.json();
+            const EPHEMERAL_KEY = data.client_secret.value;
+
+            // Create a peer connection
+            const pc = new RTCPeerConnection();
+
+            // Create a new MediaStream to combine both audio tracks
+            const combinedStream = new MediaStream();
+            combinedStreamRef.current = combinedStream;
+
+            // Add local audio track
+            const localStream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+            });
+            const localAudioTrack = localStream.getAudioTracks()[0];
+            combinedStream.addTrack(localAudioTrack);
+
+            // Add remote audio track if available
+            if (remoteAudioTrackRef.current) {
+                console.log('Adding remote audio track to combined stream');
+                combinedStream.addTrack(remoteAudioTrackRef.current);
+            } else {
+                console.warn("Remote audio track not available");
             }
-        });
-        const data = await tokenResponse.json();
-        console.log(data)
-        const EPHEMERAL_KEY = data.client_secret.value;
-        console.log(EPHEMERAL_KEY);
 
+            // Add the combined stream to the peer connection
+            combinedStream.getTracks().forEach(track => {
+                console.log('Adding track to OpenAI peer connection:', track.kind, track.label);
+                pc.addTrack(track, combinedStream);
+            });
 
-        // Create a peer connection
-        const pc = new RTCPeerConnection();
+            // Set up data channel
+            const dc = pc.createDataChannel("oai-events");
+            setDataChannel(dc);
 
-        // Set up to play remote audio from the model
-        // audioElement.current = document.createElement("audio");
-        // audioElement.current.autoplay = true;
-        // pc.ontrack = (e) => (audioElement.current.srcObject = e.streams[0]);
+            // Create and set local description
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
 
-        // Add local audio track for microphone input in the browser
-        const ms = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-        });
-        pc.addTrack(ms.getTracks()[0]);
+            // Connect to OpenAI
+            const baseUrl = "https://api.openai.com/v1/realtime";
+            const model = "gpt-4o-realtime-preview";
+            const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
+                method: "POST",
+                body: offer.sdp,
+                headers: {
+                    Authorization: `Bearer ${EPHEMERAL_KEY}`,
+                    "Content-Type": "application/sdp",
+                    "Access-Control-Allow-Origin": "*",
+                },
+            });
 
-        // Add remote audio as well
-        if(remoteAudioTrackRef.current) {
-            const audioTrack = remoteAudioTrackRef.current as MediaStreamTrack;
-            // console.log(stream);
-            // const audioTrack = stream.getAudioTracks()[0];
-            console.log(audioTrack);
-            pc.addTrack(audioTrack);
-        } else {
-            console.log("ERROR: remoteVideoRef.current is null, cannot add remote track to oai data channel");
+            const answer: RTCSessionDescriptionInit = {
+                type: "answer",
+                sdp: await sdpResponse.text(),
+            };
+            await pc.setRemoteDescription(answer);
+
+            peerConnection.current = pc;
+            console.log('OpenAI session started successfully');
+
+        } catch (error) {
+            console.error('Error starting OpenAI session:', error);
         }
-
-
-        // Set up data channel for sending and receiving events
-        const dc = pc.createDataChannel("oai-events");
-        setDataChannel(dc);
-
-        // Start the session using the Session Description Protocol (SDP)
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-
-        const baseUrl = "https://api.openai.com/v1/realtime";
-        const model = "gpt-4o-realtime-preview";
-        const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
-            method: "POST",
-            body: offer.sdp,
-            headers: {
-                Authorization: `Bearer ${EPHEMERAL_KEY}`,
-                "Content-Type": "application/sdp",
-                "Access-Control-Allow-Origin": "*", // Allow all origins
-            },
-        });
-
-        const answer: RTCSessionDescriptionInit = {
-            type: "answer",
-            sdp: await sdpResponse.text(),
-        };
-        await pc.setRemoteDescription(answer);
-
-        peerConnection.current = pc;
-
-        console.log('OPEN SESSION');
     }
 
     function generateTextResponse() {
@@ -139,6 +145,9 @@ const RealtimeAssistancePanel = ({ remoteAudioTrackRef }: Props) => {
 
     // Stop current session, clean up peer connection and data channel
     function stopSession() {
+        if (combinedStreamRef.current) {
+            combinedStreamRef.current.getTracks().forEach(track => track.stop());
+        }
         if (dataChannel) {
             dataChannel.close();
         }
@@ -149,8 +158,9 @@ const RealtimeAssistancePanel = ({ remoteAudioTrackRef }: Props) => {
         setIsSessionActive(false);
         setDataChannel(null);
         peerConnection.current = null;
+        combinedStreamRef.current = null;
 
-        console.log('CLOSE DATA CHANNEL');
+        console.log('Session closed and cleaned up');
     }
 
     function setSessionConfig() {
