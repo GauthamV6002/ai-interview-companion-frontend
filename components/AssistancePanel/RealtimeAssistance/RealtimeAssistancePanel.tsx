@@ -12,10 +12,10 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 
 type Props = {
-    remoteVideoRef: RefObject<HTMLVideoElement | null>;
+    remoteAudioTrackRef: RefObject<MediaStreamTrack | null>
 }
 
-const RealtimeAssistancePanel = ({ remoteVideoRef }: Props) => {
+const RealtimeAssistancePanel = ({ remoteAudioTrackRef }: Props) => {
 
     const { protocol } = useAuth();
 
@@ -67,9 +67,11 @@ const RealtimeAssistancePanel = ({ remoteVideoRef }: Props) => {
         pc.addTrack(ms.getTracks()[0]);
 
         // Add remote audio as well
-        if(remoteVideoRef.current) {
-            const stream = remoteVideoRef.current.srcObject as MediaStream;
-            const audioTrack = stream.getAudioTracks()[0];
+        if(remoteAudioTrackRef.current) {
+            const audioTrack = remoteAudioTrackRef.current as MediaStreamTrack;
+            // console.log(stream);
+            // const audioTrack = stream.getAudioTracks()[0];
+            console.log(audioTrack);
             pc.addTrack(audioTrack);
         } else {
             console.log("ERROR: remoteVideoRef.current is null, cannot add remote track to oai data channel");

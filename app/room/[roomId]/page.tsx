@@ -36,6 +36,8 @@ export default function RoomPage() {
     const [peerJoined, setPeerJoined] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<string>('waiting');
 
+    const remoteAudioTrackRef = useRef<MediaStreamTrack>(null);
+
     const remoteDescriptionSet = useRef(false);
 
     // Add this new ref to store pending ICE candidates
@@ -72,7 +74,11 @@ export default function RoomPage() {
                     console.log('Received remote track:', event.track.kind);
                     if (remoteVideoRef.current && event.streams[0]) {
                         console.log('Setting remote stream');
-                        // todo
+
+                        if(event.track.kind === "audio") {
+                            remoteAudioTrackRef.current =  event.track;
+                        }
+                        
                         remoteVideoRef.current.srcObject = event.streams[0];
                     }
                 };
@@ -334,7 +340,7 @@ export default function RoomPage() {
             </div>
 
             <div className="w-1/2 h-[90vh]">
-                <RealtimeAssistancePanel remoteVideoRef={remoteVideoRef} />
+                <RealtimeAssistancePanel remoteAudioTrackRef={remoteAudioTrackRef} />
             </div>
         </div>
     );
