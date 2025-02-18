@@ -27,6 +27,8 @@ const VideoChat = () => {
 
   const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
 
+  const [modelResponse, setModelResponse] = useState("Press the send button to get a summary.");
+
   const toggleAudio = () => {
     if (myStream) {
       const audioTrack = myStream.getAudioTracks()[0];
@@ -80,8 +82,9 @@ const VideoChat = () => {
 
   // Initialize socket connection
   useEffect(() => {
+    const socketUrl = process.env.NODE_ENV === 'production' ? 'https://ai-interview-companion.vercel.app/' : 'http://localhost:3001';
     console.log('Initializing socket connection...');
-    const newSocket = io('http://localhost:3001');
+    const newSocket = io(socketUrl);
     setSocket(newSocket);
 
     return () => {
@@ -245,10 +248,19 @@ const VideoChat = () => {
   function generateTextResponse() {
     const message = {
       type: "response.create",
+
       event_id: crypto.randomUUID(),
       response: {
         modalities: ["text"],
         "max_output_tokens": 128,
+        instructions: ` -
+        The interviewer needs some feedback. 
+        Determine whether the question well-asked based on the following criteria:
+        1. Was the question open-ended or closed-ended? If it was closed-ended, suggest a better question.
+        2. Is it well-phrased and relevant? Suggest a better question if not.
+        3. Does it allow the interviewee to discuss their personal expierences?
+        Based on these criteria, provide feedback and suggest a better question if needed.
+        `
       },
     }
 
@@ -279,6 +291,7 @@ const VideoChat = () => {
     const message = {
       type: "session.update",
       session: {
+        instructions: "You are a third-party expert interviewer who is listening in on an interview between an interviwer and interviewee. Your job is the provide feedback or information to the interviewer when they need it.",
         turn_detection: {
           type: "server_vad",
           create_response: false
@@ -299,13 +312,13 @@ const VideoChat = () => {
     if (dataChannel) {
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
-        if (JSON.parse(e.data).type === "input_audio_buffer.committed") {
-          console.log("respond!");
-          // TODO: set delay so it doesn't go off again, use a setTimeout on useState
-          // generateTextResponse();
+        const data = JSON.parse(e.data);
+        if (data.type === "response.done") {
+          console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
+          setModelResponse(data.response.output[0].content[0].text);
         }
-        // setEvents((prev) => [JSON.parse(e.data), ...prev]);
-        console.log("EVENT", JSON.parse(e.data));
+        // setEvents((prev) => [data, ...prev]);
+        console.log("EVENT", data);
       });
 
       // Set session active when the data channel is opened
@@ -356,6 +369,10 @@ const VideoChat = () => {
             </div>
           )
         ))}
+      </div>
+
+      <div className='w-full flex items-center justify-center'>
+        <p>{ modelResponse }</p>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg">
