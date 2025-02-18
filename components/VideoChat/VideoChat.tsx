@@ -3,7 +3,7 @@ import { RefObject, useEffect, useState } from "react";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '../ui/card';
 
 
-import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
+import { Copy, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "../ui/button";
@@ -54,8 +54,21 @@ export default function VideoChat({
     return (
 
         <Card className='h-full flex-col flex'>
+            {/* TODO: Remove red & white outlines */}
             <CardHeader>
-                <CardTitle>Room ID: {roomId}</CardTitle>
+                <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
+                        <h3>Room ID: {roomId}</h3>
+                        {/* TODO: Change localhost url to prod url */}
+                        <Copy size={15} className="hover:scale-125 transition-all cursor-pointer" color="white" onClick={() => navigator.clipboard.writeText(`http://localhost:3000/room/${roomId}`)}/>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                        { peerJoined ? <div className="size-2 bg-green-500 rounded-full"></div> : <div className="size-2 bg-yellow-500 rounded-full"></div> }
+                        { peerJoined ? <p>Peer Joined</p> : <p>Waiting for peer...</p> }
+
+                    </div>
+
+                </div>
             </CardHeader>
             <CardContent className="">
                 <div className="relative"> {/* Set a height for the container */}
@@ -74,7 +87,7 @@ export default function VideoChat({
                     />
                 </div>
             </CardContent>
-            <div className="flex w-full justify-center gap-4 mt-auto mb-4"> {/* Added margin-top to create space below the video */}
+            <div className="flex w-full justify-center gap-4 mt-auto mb-3"> {/* Added margin-top to create space below the video */}
                 <Button
                     variant={isAudioEnabled ? "default" : "destructive"}
                     onClick={toggleAudio}
