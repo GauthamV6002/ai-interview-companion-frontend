@@ -34,7 +34,7 @@ export default function App() {
             </div>
 
             <div className="w-1/2 h-[90vh]">
-                {(configurationMode === "mode_a") ? <ProtocolPanel /> : <RealtimeAssistancePanel transcript={transcript} />}
+                {/* {(configurationMode === "mode_a") ? <ProtocolPanel /> : <RealtimeAssistancePanel />} */}
             </div>
         </div>
     );
