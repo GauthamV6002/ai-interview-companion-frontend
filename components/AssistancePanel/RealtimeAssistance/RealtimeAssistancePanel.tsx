@@ -42,7 +42,7 @@ const RealtimeAssistancePanel = ({callID} : Props) => {
                     <Button onClick={handleNextQuestion}>Next best question</Button>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 overflow-y-scroll">
                     {
                         protocol.map((question, q_index) => (
                             <Card 
@@ -70,9 +70,6 @@ const RealtimeAssistancePanel = ({callID} : Props) => {
 
 
             </CardContent>
-            <CardFooter>
-                Call ID: {callID}
-            </CardFooter>
         </Card>
     )
 }
