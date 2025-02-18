@@ -2,6 +2,9 @@ import { RefObject, useEffect, useState } from "react";
 
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '../ui/card';
 
+
+import { Mic, MicOff, Video, VideoOff } from 'lucide-react';
+
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "../ui/button";
 
@@ -22,58 +25,33 @@ export default function VideoChat({
     isCaller,
     roomId
 }: VideoChatProps) {
-    return (
-        // <div className="flex flex-col space-y-4">
-        //     <div className="flex justify-between items-center mb-4">
-        //         <h2 className="text-xl font-semibold">Video Chat</h2>
-        //         <div className="flex items-center space-x-2">
-        //             <span className={`h-3 w-3 rounded-full ${
-        //                 connectionStatus === 'connected' ? 'bg-green-500' :
-        //                 connectionStatus === 'connecting' ? 'bg-yellow-500' :
-        //                 'bg-red-500'
-        //             }`} />
-        //             <span className="text-sm">
-        //                 {connectionStatus === 'waiting' && (isCaller ? 'Waiting for peer to join...' : 'Joining call...')}
-        //                 {connectionStatus === 'connecting' && 'Connecting...'}
-        //                 {connectionStatus === 'connected' && 'Connected'}
-        //                 {connectionStatus === 'disconnected' && 'Disconnected'}
-        //             </span>
-        //         </div>
-        //     </div>
 
-        //     <div className="grid grid-cols-2 gap-4">
-        //         <div className="relative">
-        //             <video
-        //                 ref={localVideoRef}
-        //                 autoPlay
-        //                 playsInline
-        //                 muted
-        //                 className="w-full bg-black rounded"
-        //             />
-        //             <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded">
-        //                 You
-        //             </span>
-        //         </div>
-        //         <div className="relative">
-        //             <video
-        //                 ref={remoteVideoRef}
-        //                 autoPlay
-        //                 playsInline
-        //                 className="w-full bg-black rounded"
-        //             />
-        //             {!peerJoined && (
-        //                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">
-        //                     Waiting for peer...
-        //                 </div>
-        //             )}
-        //             {peerJoined && (
-        //                 <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded">
-        //                     Peer
-        //                 </span>
-        //             )}
-        //         </div>
-        //     </div>
-        // </div>
+    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+
+    const toggleAudio = () => {
+        if (localVideoRef.current?.srcObject) {
+            const stream = localVideoRef.current.srcObject as MediaStream;
+            const audioTrack = stream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                setIsAudioEnabled(audioTrack.enabled);
+            }
+        }
+    };
+
+    const toggleVideo = () => {
+        if (localVideoRef.current?.srcObject) {
+            const stream = localVideoRef.current.srcObject as MediaStream;
+            const videoTrack = stream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                setIsVideoEnabled(videoTrack.enabled);
+            }
+        }
+    };
+
+    return (
 
         <Card className='h-full flex-col flex'>
             <CardHeader>
@@ -96,11 +74,23 @@ export default function VideoChat({
                     />
                 </div>
             </CardContent>
-            <div className="flex w-full justify-center gap-2 mt-auto mb-5"> {/* Added margin-top to create space below the video */}
-                    <Button>1</Button>
-                    <Button>2</Button>
-                    <Button>3</Button>
-                </div>
+            <div className="flex w-full justify-center gap-4 mt-auto mb-4"> {/* Added margin-top to create space below the video */}
+                <Button
+                    variant={isAudioEnabled ? "default" : "destructive"}
+                    onClick={toggleAudio}
+                    className="rounded-full p-1 h-12 w-12"
+                >
+                    {isAudioEnabled ? <Mic size={20} /> : <MicOff size={20} />}
+                </Button>
+
+                <Button
+                    variant={isVideoEnabled ? "default" : "destructive"}
+                    onClick={toggleVideo}
+                    className="rounded-full p-1 h-12 w-12"
+                >
+                    {isVideoEnabled ? <Video size={20} /> : <VideoOff size={20} />}
+                </Button>
+            </div>
         </Card>
 
 
