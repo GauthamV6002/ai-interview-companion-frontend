@@ -113,6 +113,7 @@ export default function RoomPage() {
                         localVideoRef.current.srcObject = stream;
                     }
                     setLocalStream(stream);
+                    
                 } catch (err) {
                     console.error('Error accessing media devices:', err);
                     return;
@@ -340,7 +341,7 @@ export default function RoomPage() {
             </div>
 
             <div className="w-1/2 h-[90vh]">
-                <RealtimeAssistancePanel remoteAudioTrackRef={remoteAudioTrackRef} />
+                <RealtimeAssistancePanel localStream={localStream} remoteAudioTrackRef={remoteAudioTrackRef} />
             </div>
         </div>
     );

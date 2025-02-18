@@ -12,10 +12,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 
 type Props = {
+    localStream: MediaStream | null;
     remoteAudioTrackRef: RefObject<MediaStreamTrack | null>
 }
 
-const RealtimeAssistancePanel = ({ remoteAudioTrackRef }: Props) => {
+const RealtimeAssistancePanel = ({ localStream, remoteAudioTrackRef }: Props) => {
 
     const { protocol } = useAuth();
 
@@ -59,12 +60,12 @@ const RealtimeAssistancePanel = ({ remoteAudioTrackRef }: Props) => {
             const combinedStream = new MediaStream();
             combinedStreamRef.current = combinedStream;
 
-            // Add local audio track
-            const localStream = await navigator.mediaDevices.getUserMedia({
-                audio: true,
-            });
-            const localAudioTrack = localStream.getAudioTracks()[0];
-            combinedStream.addTrack(localAudioTrack);
+            if(localStream) {
+                const localAudioTrack = localStream.getAudioTracks()[0];
+                combinedStream.addTrack(localAudioTrack);
+            } else {
+                console.log('ERROR: localstream is null')
+            }
 
             // Add remote audio track if available
             if (remoteAudioTrackRef.current) {
