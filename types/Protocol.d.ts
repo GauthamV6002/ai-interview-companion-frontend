@@ -1,4 +1,5 @@
 type InterviewQuestion = {
+    id: Number;
     question: string;
     followUps: string[];
 };

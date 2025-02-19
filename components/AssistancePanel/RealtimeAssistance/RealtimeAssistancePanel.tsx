@@ -7,9 +7,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useAuth } from '@/context/AuthContext'
 import { Textarea } from '@/components/ui/textarea'
 
-import { Lightbulb, RefreshCw, Sparkle, Sparkles } from 'lucide-react'
+import { Lightbulb, Pause, Play, RefreshCw, Sparkle, Sparkles } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
+import { TaskResponse } from '@/types/TaskResponse'
+import { getFollowUpPrompt, getNextQuestionPrompt, getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
 
 type Props = {
     localStream: MediaStream | null;
@@ -18,28 +20,20 @@ type Props = {
 
 const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
 
-    const { protocol } = useAuth();
+    const { protocol, protocolString } = useAuth();
 
     const [selectedQuestion, setSelectedQuestion] = useState(0);
-    const [followUpGenerated, setFollowUpGenerated] = useState(false);
 
     const peerConnection = useRef<RTCPeerConnection>(null);
     const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
-    const [modelResponse, setModelResponse] = useState("Press the send button to get a summary.");
+    const [modelResponse, setModelResponse] = useState("Start the session for feedback to show up.");
+    const [modelResponseDescription, setModelResponseDescription] = useState("Or press any of the buttons during a session.")
     const [isSessionActive, setIsSessionActive] = useState(false);
-    const [events, setEvents] = useState([]);
+
+    const [feedbackOnCooldown, setFeedbackOnCooldown] = useState(false);
+    const FEEDBACK_COOLDOWN = 5000; // in millis
 
     const combinedStreamRef = useRef<MediaStream | null>(null);
-
-    const handleNextQuestion = () => {
-        setSelectedQuestion((prev) => Math.min(prev + 1, protocol.length - 1));
-        setFollowUpGenerated(false);
-    }
-
-    const handleGetFollowUp = () => {
-        setFollowUpGenerated(true);
-    }
-
 
     async function startSession() {
         try {
@@ -123,34 +117,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
         }
     }
 
-    function generateTextResponse() {
-
-        const instructionsPrompt = `The interviewer needs some feedback. 
-        Determine whether the question well-asked based on the following criteria:
-        1. Was the question open-ended or closed-ended? If it was closed-ended, suggest a better question.
-        2. Is it well-phrased and relevant? Suggest a better question if not.
-        3. Does it allow the interviewee to discuss their personal expierences?
-        Based on these criteria, provide feedback and suggest a better question if needed.
-        Keep your response to 10-20 words.
-        `
-
-        const message = {
-            type: "response.create",
-
-            event_id: crypto.randomUUID(),
-            response: {
-                modalities: ["text"],
-                "max_output_tokens": 32,
-                instructions: "What was the last thing that was said?"
-            },
-        }
-
-        if (dataChannel) {
-            dataChannel.send(JSON.stringify(message));
-        }
-    }
-
-
     // Stop current session, clean up peer connection and data channel
     function stopSession() {
         if (combinedStreamRef.current) {
@@ -172,7 +138,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
     }
 
     function setSessionConfig() {
-
         const message = {
             type: "session.update",
             session: {
@@ -188,8 +153,79 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
         if (dataChannel) {
             dataChannel.send(JSON.stringify(message));
             console.log('SEND SET DATA CONFIG MESSAGE', message);
-            // setEvents((prev) => [message, ...prev]);
         }
+    }
+
+    function getTaskResponse(prompt : string, maxOutputTokens = 128) {
+        const message = {
+            type: "response.create",
+            event_id: crypto.randomUUID(),
+            response: {
+                modalities: ["text"],
+                "max_output_tokens": maxOutputTokens,
+                instructions: prompt
+            },
+        }
+
+        if (dataChannel) {
+            dataChannel.send(JSON.stringify(message));
+        }
+    }
+
+    const handleResponseDone = (parsedData : TaskResponse) => {
+        switch (parsedData.task) {
+            case "feedback":
+                if(parsedData.feedback?.toLowerCase() === "none" || parsedData.reason?.toLowerCase() === "none") return;
+                if(parsedData.feedback) setModelResponse(parsedData.feedback);
+                setModelResponseDescription(parsedData.reason);
+                break;
+
+            case "follow-up":
+                if(parsedData.follow_up) setModelResponse(`Follow Up: "${parsedData.follow_up}"`);
+                setModelResponseDescription(parsedData.reason);
+                break;
+
+            case "rephrase":
+                if(parsedData.rephrased_question) setModelResponse(parsedData.rephrased_question);
+                // TODO: make this change the protocol one too (copy may be needed?)
+                setModelResponseDescription(parsedData.reason);
+                break;
+
+            case "next-question":
+                if(parsedData.next_question_id) {
+                    setSelectedQuestion(parsedData.next_question_id);
+                    setModelResponse(`Next Question: "${protocol[parsedData.next_question_id].question}"`);
+                }
+                setModelResponseDescription(parsedData.reason);
+                break;
+
+            default:
+                console.log("Unknown task type:", parsedData.task);
+                break;
+        }
+    }
+
+
+    // CLIENT SIDE AI RESPONSE TRIGGERS
+    
+    const handleGetFeedback = () => {
+        getTaskResponse(getQuestionFeedbackPrompt());
+        console.log("(AI TASK: feedback) sent");
+    }
+    
+    const handleGetFollowUp = () => {
+        getTaskResponse(getFollowUpPrompt());
+        console.log("(AI TASK: follow-up) sent");
+    }
+
+    const handleRephrase = (question_id : number, question : string) => {
+        getTaskResponse(getRephrasePrompt(question));
+        console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
+    }
+
+    const handleNextQuestion = () => {
+        getTaskResponse(getNextQuestionPrompt(protocolString));
+        console.log("(AI TASK: next-question) sent, protocol:", protocolString);
     }
 
     // Attach event listeners to the data channel when a new one is created
@@ -199,17 +235,33 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
             dataChannel.addEventListener("message", (e) => {
                 const data = JSON.parse(e.data);
                 if (data.type === "response.done") {
+
+                    if(!data.response.output[0]) return;
                     console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
-                    setModelResponse(data.response.output[0].content[0].text);
+                    
+                    try {
+                        const parsedData = JSON.parse(data.response.output[0].content[0].text) as TaskResponse;
+                        handleResponseDone(parsedData);
+                    } catch (err) {
+                        // Catches edge cases like cancellations due to interuptions
+                        console.log("ERROR: Parsing model response failed. Recieved:", data.response.output[0].content[0].text);
+                        console.log(err)
+                    }
+
+                } 
+
+                if (data.type === "input_audio_buffer.committed") {
+                    // Someone finished talking
+                    // TODO: question finished detection
+                    handleGetFeedback();
                 }
-                // setEvents((prev) => [data, ...prev]);
+
                 console.log("EVENT", data);
             });
 
             // Set session active when the data channel is opened
             dataChannel.addEventListener("open", () => {
                 setIsSessionActive(true);
-                setEvents([]);
                 setSessionConfig();
             });
 
@@ -221,19 +273,25 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
             <CardContent className='h-full flex flex-col gap-2'>
 
                 <Card className='p-4 flex gap-2 items-center justify-start'>
-                    <div className='size-2 bg-green-500 rounded-full'></div> 
-                    <h3 className='text-lg'>
-                        { modelResponse }
-                    </h3>
+                    {/* <div className='h-full w-1 bg-green-500 rounded-sm'></div>  */}
+                    <div className="flex flex-col">
+                        <h3 className='text-base'>
+                            { modelResponse }
+                        </h3>
+                        <div className='w-6 bg-white h-[2px] my-2'></div>
+                        <p className='text-sm'>
+                            { modelResponseDescription }
+                        </p>
+                    </div>
                 </Card>
                 <Card className='p-4 flex justify-between'>
                     <div className='flex gap-2'>
-                        <Button onClick={generateTextResponse}>Test CMD</Button>
+                        {/* <Button onClick={generateTextResponse}>Test CMD</Button> */}
                         <Button onClick={handleGetFollowUp}>Generate follow-up</Button>
                         <Button onClick={handleNextQuestion}>Next Question</Button>
                     </div>
                     <div>
-                        {isSessionActive ? <Button onClick={stopSession}>Stop AI</Button> : <Button onClick={startSession}>Start AI</Button>}
+                        {isSessionActive ? <Button onClick={stopSession}> <Pause /> Stop AI</Button> : <Button onClick={startSession}> <Play /> Start AI</Button>}
                     </div>
                 </Card>
 
@@ -249,16 +307,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                             >
                                 <div className=" mr-auto">
                                     <p className='text-white/90'>{question.question}</p>
-                                    {
-                                        (q_index === selectedQuestion && followUpGenerated) &&
+                                    {/* {
+                                        (q_index === selectedQuestion) &&
                                         (<div className='flex gap-1 justify-start items-center'>
                                             <Checkbox className='size-3' />
                                             <p className='text-sm text-white/60'>Follow-up</p>
                                         </div>)
-                                    }
+                                    } */}
 
                                 </div>
-                                <RefreshCw className='hover:scale-110 size-6 hover:cursor-pointer' />
+                                <RefreshCw className='hover:scale-110 size-6 hover:cursor-pointer' onClick={() => handleRephrase(q_index, question.question)} />
                                 <Checkbox className='size-6' />
                             </Card>
                         ))

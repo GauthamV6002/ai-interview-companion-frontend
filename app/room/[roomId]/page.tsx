@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import RealtimeAssistancePanel from "@/components/AssistancePanel/RealtimeAssistance/RealtimeAssistancePanel";
 import VideoChat from "@/components/VideoChat/VideoChat";
+import NotesPanel from "@/components/AssistancePanel/IntervieweeAssistance/NotesPanel";
 
 // Use a basic STUN server configuration (you can add TURN servers if needed)
 const configuration = {
@@ -93,6 +94,12 @@ export default function RoomPage() {
                     const stream = await navigator.mediaDevices.getUserMedia({
                         video: true,
                         audio: true,
+                        // TODO: test if this is worth having
+                        // audio: {
+                        //     echoCancellation: true,
+                        //     noiseSuppression: true,
+                        //     autoGainControl: true
+                        // },
                     });
                     console.log('Local stream obtained successfully');
 
@@ -346,7 +353,12 @@ export default function RoomPage() {
             </div>
 
             <div className="w-1/2 h-[90vh]">
-                <RealtimeAssistancePanel localStream={localStream} remoteAudioStream={remoteAudioStream} />
+                {
+                    isCaller ?
+                        <RealtimeAssistancePanel localStream={localStream} remoteAudioStream={remoteAudioStream} /> 
+                        :
+                        <NotesPanel />
+                }
             </div>
         </div>
     );
