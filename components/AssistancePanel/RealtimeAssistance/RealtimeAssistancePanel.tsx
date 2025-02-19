@@ -162,7 +162,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
             event_id: crypto.randomUUID(),
             response: {
                 modalities: ["text"],
-                "max_output_tokens": maxOutputTokens,
+                // "max_output_tokens": maxOutputTokens,
                 instructions: prompt
             },
         }
