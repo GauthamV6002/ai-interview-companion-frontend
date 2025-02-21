@@ -186,7 +186,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                 break;
 
             case "rephrase":
-                if(parsedData.rephrased_question) setModelResponse(parsedData.rephrased_question);
+                if(parsedData.rephrased_question) setModelResponse(`Rephrased Question: ${parsedData.rephrased_question}`);
                 // TODO: make this change the protocol one too (copy may be needed?)
                 setModelResponseDescription(parsedData.reason);
                 break;
