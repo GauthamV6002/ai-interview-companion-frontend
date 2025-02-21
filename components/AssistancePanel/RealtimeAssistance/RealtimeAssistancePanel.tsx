@@ -156,13 +156,13 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
         }
     }
 
-    function getTaskResponse(prompt : string, maxOutputTokens = 128) {
+    function getTaskResponse(prompt : string, maxOutputTokens = 2048) {
         const message = {
             type: "response.create",
             event_id: crypto.randomUUID(),
             response: {
                 modalities: ["text"],
-                "max_output_tokens": maxOutputTokens,
+                // "max_output_tokens": maxOutputTokens,
                 instructions: prompt
             },
         }
