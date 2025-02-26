@@ -144,8 +144,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                 instructions: "You are a third-party expert interviewer who is listening in on an interview between an interviwer and interviewee. Your job is the provide feedback or information to the interviewer when they need it.",
                 turn_detection: {
                     type: "server_vad",
-                    create_response: false
-                }
+                    create_response: false,
+                    interrupt_response: true,
+                },
             },
             event_id: crypto.randomUUID()
         }
