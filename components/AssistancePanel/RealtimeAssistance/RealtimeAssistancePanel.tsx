@@ -7,11 +7,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useAuth } from '@/context/AuthContext'
 import { Textarea } from '@/components/ui/textarea'
 
-import { Lightbulb, Pause, Play, RefreshCw, Sparkle, Sparkles } from 'lucide-react'
+import { Lightbulb, Loader, Pause, Play, RefreshCw, Sparkle, Sparkles } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { TaskResponse } from '@/types/TaskResponse'
 import { getFollowUpPrompt, getNextQuestionPrompt, getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
+
+import openaiLogo from '@/public/chatgpt-logo.webp';
+import { Skeleton } from '@/components/ui/skeleton'
 
 type Props = {
     localStream: MediaStream | null;
@@ -20,7 +23,7 @@ type Props = {
 
 const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
 
-    const { protocol, protocolString } = useAuth();
+    const { protocol, configurationMode, protocolString } = useAuth();
 
     const [selectedQuestion, setSelectedQuestion] = useState(0);
 
@@ -30,8 +33,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
     const [modelResponseDescription, setModelResponseDescription] = useState("Or press any of the buttons during a session.")
     const [isSessionActive, setIsSessionActive] = useState(false);
 
-    const [feedbackOnCooldown, setFeedbackOnCooldown] = useState(false);
-    const FEEDBACK_COOLDOWN = 5000; // in millis
+    const [responseInProgress, setResponseInProgress] = useState(false);
 
     const combinedStreamRef = useRef<MediaStream | null>(null);
 
@@ -145,7 +147,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                 turn_detection: {
                     type: "server_vad",
                     create_response: false,
-                    interrupt_response: true,
+                    interrupt_response: false,
                 },
             },
             event_id: crypto.randomUUID()
@@ -157,43 +159,68 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
         }
     }
 
-    function getTaskResponse(prompt : string, maxOutputTokens = 2048) {
-        const message = {
-            type: "response.create",
-            event_id: crypto.randomUUID(),
-            response: {
-                modalities: ["text"],
-                // "max_output_tokens": maxOutputTokens,
-                instructions: prompt
-            },
+    function getTaskResponse(prompt: string, maxOutputTokens = 2048) {
+
+        // Check if a response is alr being generated, if so, wait until it is finished
+        // set interval is easy im lazy leave me alone
+
+        console.log('responseInProgess?', responseInProgress)
+
+        const sendResponseSignal = () => {
+            setResponseInProgress(true);
+
+            const message = {
+                type: "response.create",
+                event_id: crypto.randomUUID(),
+                response: {
+                    modalities: ["text"],
+                    // "max_output_tokens": maxOutputTokens,
+                    instructions: prompt
+                },
+            }
+
+            if (dataChannel) {
+                dataChannel.send(JSON.stringify(message));
+            }
         }
 
-        if (dataChannel) {
-            dataChannel.send(JSON.stringify(message));
+        if (!responseInProgress) {
+            sendResponseSignal();
+        } else {
+            const interval = setInterval(() => {
+                if (!responseInProgress) {
+                    sendResponseSignal();
+                    clearInterval(interval);
+                }
+            }, 20);
         }
     }
 
-    const handleResponseDone = (parsedData : TaskResponse) => {
+    const handleResponseDone = (parsedData: TaskResponse) => {
+
+        setResponseInProgress(false);
+        console.log("responseInProgress?", responseInProgress)
+
         switch (parsedData.task) {
             case "feedback":
-                if(parsedData.feedback?.toLowerCase() === "none" || parsedData.reason?.toLowerCase() === "none") return;
-                if(parsedData.feedback) setModelResponse(parsedData.feedback);
+                if (parsedData.feedback?.toLowerCase() === "none" || parsedData.reason?.toLowerCase() === "none") return;
+                if (parsedData.feedback) setModelResponse(parsedData.feedback);
                 setModelResponseDescription(parsedData.reason);
                 break;
 
             case "follow-up":
-                if(parsedData.follow_up) setModelResponse(`Follow Up: "${parsedData.follow_up}"`);
+                if (parsedData.follow_up) setModelResponse(`Follow Up: "${parsedData.follow_up}"`);
                 setModelResponseDescription(parsedData.reason);
                 break;
 
             case "rephrase":
-                if(parsedData.rephrased_question) setModelResponse(`Rephrased Question: ${parsedData.rephrased_question}`);
+                if (parsedData.rephrased_question) setModelResponse(`Rephrased Question: ${parsedData.rephrased_question}`);
                 // TODO: make this change the protocol one too (copy may be needed?)
                 setModelResponseDescription(parsedData.reason);
                 break;
 
             case "next-question":
-                if(parsedData.next_question_id) {
+                if (parsedData.next_question_id) {
                     setSelectedQuestion(parsedData.next_question_id);
                     setModelResponse(`Next Question: "${protocol[parsedData.next_question_id].question}"`);
                 }
@@ -204,22 +231,23 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                 console.log("Unknown task type:", parsedData.task);
                 break;
         }
+
     }
 
 
     // CLIENT SIDE AI RESPONSE TRIGGERS
-    
+
     const handleGetFeedback = () => {
         getTaskResponse(getQuestionFeedbackPrompt());
         console.log("(AI TASK: feedback) sent");
     }
-    
+
     const handleGetFollowUp = () => {
         getTaskResponse(getFollowUpPrompt());
         console.log("(AI TASK: follow-up) sent");
     }
 
-    const handleRephrase = (question_id : number, question : string) => {
+    const handleRephrase = (question_id: number, question: string) => {
         getTaskResponse(getRephrasePrompt(question));
         console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
     }
@@ -237,9 +265,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                 const data = JSON.parse(e.data);
                 if (data.type === "response.done") {
 
-                    if(!data.response.output[0]) return;
+                    if (!data.response.output[0]) return;
                     console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
-                    
+
                     try {
                         const parsedData = JSON.parse(data.response.output[0].content[0].text) as TaskResponse;
                         handleResponseDone(parsedData);
@@ -249,12 +277,11 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                         console.log(err)
                     }
 
-                } 
+                }
 
                 if (data.type === "input_audio_buffer.committed") {
                     // Someone finished talking
-                    // TODO: question finished detection
-                    handleGetFeedback();
+                    if (configurationMode === "responsive" || configurationMode === "full") handleGetFeedback();
                 }
 
                 console.log("EVENT", data);
@@ -274,25 +301,32 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
             <CardContent className='h-full flex flex-col gap-2'>
 
                 <Card className='p-4 flex gap-2 items-center justify-start'>
-                    {/* <div className='h-full w-1 bg-green-500 rounded-sm'></div>  */}
-                    <div className="flex flex-col">
-                        <h3 className='text-base'>
-                            { modelResponse }
-                        </h3>
-                        <div className='w-6 bg-white h-[2px] my-2'></div>
-                        <p className='text-sm'>
-                            { modelResponseDescription }
-                        </p>
+
+                    <div className="flex gap-2 items-center">
+                        <img src={openaiLogo.src} alt="OpenAI Logo" className="size-12 rounded-full" />
+                        <div className='w-[1px] bg-white h-20'></div>
+                        <div className="flex flex-col">
+                            <div>
+                                {responseInProgress ? <Skeleton className='w-[400px] h-8 mb-2' /> : <h3 className='text-base'>{modelResponse}</h3>}
+                            </div>
+                            {/* <div className='w-6 bg-white h-[2px] my-2'></div> */}
+                            <div>
+                                {responseInProgress ? <Skeleton className='w-[300px] h-8' /> : <p className='text-sm'>{modelResponseDescription}</p>}
+                            </div>
+                        </div>
                     </div>
                 </Card>
                 <Card className='p-4 flex justify-between'>
-                    <div className='flex gap-2'>
-                        {/* <Button onClick={generateTextResponse}>Test CMD</Button> */}
-                        <Button onClick={handleGetFollowUp}>Generate follow-up</Button>
-                        <Button onClick={handleNextQuestion}>Next Question</Button>
-                    </div>
+                    {configurationMode === "interactive" || configurationMode === "full" ?
+                        <div className='flex gap-2'>
+                            {/* <Button onClick={generateTextResponse}>Test CMD</Button> */}
+                            <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetFollowUp}>{responseInProgress && <Loader className='size-4 animate-spin' />} Generate follow-up</Button>
+                            <Button disabled={!isSessionActive || responseInProgress} onClick={handleNextQuestion}> {responseInProgress && <Loader className='size-4 animate-spin'/>} Next Question </Button>
+                        </div>
+                        :
+                    <p className='text-sm text-white/60'>Interactive mode not enabled</p>}
                     <div>
-                        {isSessionActive ? <Button onClick={stopSession}> <Pause /> Stop AI</Button> : <Button onClick={startSession}> <Play /> Start AI</Button>}
+                        {isSessionActive ? <Button className='bg-red-500' onClick={stopSession}> <Pause /> Stop AI</Button> : <Button onClick={startSession}> <Play /> Start AI</Button>}
                     </div>
                 </Card>
 

@@ -7,19 +7,11 @@ import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Separator } from "@/components/ui/separator";
 
 export default function HomePage() {
     const router = useRouter();
     const [roomId, setRoomId] = useState("");
-
-    const handleCreateRoom = async () => {
-        // Generate a random room ID
-        const newRoomId = Math.random().toString(36).substring(2, 7);
-        // Pass a query param (caller=true) to indicate that this user is creating the room
-        router.push(`/room/${newRoomId}?caller=true`);
-    };
 
     const handleJoinRoom = async () => {
         if (!roomId.trim()) return;
@@ -39,7 +31,7 @@ export default function HomePage() {
 
                     <Separator className="my-4"/>
 
-                    <Button onClick={handleCreateRoom}>Start New Call</Button>
+                    <Button onClick={() => router.push('/login')}>Login to start a call</Button>
 
                 </CardContent>
             </Card>

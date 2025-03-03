@@ -1,7 +1,7 @@
 import { Protocol } from '@/types/Protocol';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type ConfigurationMode = "mode_a" | "mode_b" | null;
+export type ConfigurationMode = "interactive" | "responsive" | "none" | "full" | "post" |  null;
 
 export interface AuthContextType {
   participantID: Number;
@@ -98,7 +98,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const [participantID, setParticipantID] = useState<Number>(12345);
-  const [configurationMode, setConfigurationMode] = useState<ConfigurationMode>(null);
+  const [configurationMode, setConfigurationMode] = useState<ConfigurationMode>('full');
   const [protocol, setProtocol] = useState<Protocol>(DEFAULT_PROTOCOL);
   const [protocolString, setProtocolString] = useState<string>(DEFAULT_PROTOCOL_STRING);
 

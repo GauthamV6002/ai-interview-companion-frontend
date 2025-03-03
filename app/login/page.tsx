@@ -99,20 +99,24 @@ const page = (props: Props) => {
 							<SelectValue placeholder="AI Assistance Configuration" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="mode_a">Mode A - Post-Interview</SelectItem>
-							<SelectItem value="mode_b">Mode B - Realtime</SelectItem>
+							<SelectItem value="interactive">1. Responsive Assistance</SelectItem>
+							<SelectItem value="responsive">2. Interactive Assistance</SelectItem>
+							<SelectItem value="none">3. No AI Assistance</SelectItem>
+							<SelectItem value="full">4. Full AI Assistance (Not Implemented)</SelectItem>
+							<SelectItem value="post">5. Post Interview Assistance (Not Implemented)</SelectItem>
 						</SelectContent>
 					</Select>
+					
 
 					<Label htmlFor="protocolUpload" className='mt-4 ml-1 text-lg'>Upload Your Protocol</Label>
+					<Label htmlFor="protocolUpload" className='-mt-1 ml-1 text-sm font-light'>Leave blank for default protocol.</Label>
 					<Input id="protocolUpload" type='file' onChange={handleFileUpload} className='border-[3px] border-dashed' />
 
 					{
-						(!participantID || !configurationMode || !(protocol.length)) ?
+						(!participantID || !configurationMode) ?
 							<Button disabled className='mt-6'>Please fill out all fields.</Button>
 							:
-							// <Link className='w-full' href={"/"}>Continue</Link>
-							<Button onClick={() => router.push("/")} className='w-full mt-6'>Join Room</Button>
+							<Button onClick={handleJoinRoom} className='w-full mt-6'>Start Call</Button>
 					}
 
 				</CardContent>
