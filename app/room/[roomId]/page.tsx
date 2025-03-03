@@ -12,6 +12,7 @@ import {
     updateDoc,
     onSnapshot,
     getDoc,
+    deleteDoc,
 } from "firebase/firestore";
 import RealtimeAssistancePanel from "@/components/AssistancePanel/RealtimeAssistance/RealtimeAssistancePanel";
 import VideoChat from "@/components/VideoChat/VideoChat";
@@ -339,6 +340,40 @@ export default function RoomPage() {
         };
     }, [roomId, isCaller, router]);
 
+    const handleEndCall = async () => {
+        // Clean up WebRTC connection
+        if (pcRef.current) {
+            // Remove all tracks before closing
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    const senders = pcRef.current?.getSenders() || [];
+                    const sender = senders.find(s => s.track === track);
+                    if (sender) {
+                        pcRef.current?.removeTrack(sender);
+                    }
+                });
+            }
+            pcRef.current.close();
+            pcRef.current = null;
+        }
+
+        // Stop local stream tracks
+        if (localStream) {
+            localStream.getTracks().forEach((track) => track.stop());
+        }
+
+        // Clean up room in Firestore
+        try {
+            const roomRef = doc(firestore, "rooms", roomId);
+            await deleteDoc(roomRef);
+        } catch (error) {
+            console.error("Error cleaning up room:", error);
+        }
+
+        // Navigate to post-interview page
+        router.push("/post-interview");
+    };
+
     return (
         <div className="p-4 h-screen flex items-center gap-8">
             <div className="w-1/2 h-[90vh]">
@@ -349,6 +384,8 @@ export default function RoomPage() {
                     connectionStatus={connectionStatus}
                     isCaller={isCaller}
                     roomId={roomId}
+                    onEndCall={handleEndCall}
+                    peerConnection={pcRef.current}
                 />
             </div>
 

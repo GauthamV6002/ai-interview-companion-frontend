@@ -3,7 +3,7 @@ import { RefObject, useEffect, useState } from "react";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '../ui/card';
 
 
-import { Copy, Mic, MicOff, Video, VideoOff } from 'lucide-react';
+import { Copy, Mic, MicOff, Video, VideoOff, PhoneOff } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
 import { Button } from "../ui/button";
@@ -15,6 +15,8 @@ interface VideoChatProps {
     connectionStatus: string;
     isCaller: boolean;
     roomId: string;
+    onEndCall: () => void;
+    peerConnection: RTCPeerConnection | null;
 }
 
 export default function VideoChat({
@@ -23,7 +25,9 @@ export default function VideoChat({
     peerJoined,
     connectionStatus,
     isCaller,
-    roomId
+    roomId,
+    onEndCall,
+    peerConnection
 }: VideoChatProps) {
 
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -49,6 +53,42 @@ export default function VideoChat({
                 setIsVideoEnabled(videoTrack.enabled);
             }
         }
+    };
+
+    const handleEndCall = async () => {
+        // Stop all tracks in local stream
+        if (localVideoRef.current?.srcObject) {
+            const stream = localVideoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        // Stop all tracks in remote stream
+        if (remoteVideoRef.current?.srcObject) {
+            const stream = remoteVideoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        // Close peer connection
+        if (peerConnection) {
+            // Remove all tracks before closing
+            peerConnection.getSenders().forEach((sender) => {
+                if (sender.track) {
+                    sender.track.stop();
+                }
+                peerConnection.removeTrack(sender);
+            });
+            peerConnection.close();
+        }
+
+        // Clear video elements
+        if (localVideoRef.current) {
+            localVideoRef.current.srcObject = null;
+        }
+        if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = null;
+        }
+
+        onEndCall();
     };
 
     return (
@@ -102,6 +142,14 @@ export default function VideoChat({
                     className="rounded-full p-1 h-12 w-12"
                 >
                     {isVideoEnabled ? <Video size={20} /> : <VideoOff size={20} />}
+                </Button>
+
+                <Button
+                    variant="destructive"
+                    onClick={handleEndCall}
+                    className="rounded-full p-1 h-12 w-12"
+                >
+                    <PhoneOff size={20} />
                 </Button>
             </div>
         </Card>

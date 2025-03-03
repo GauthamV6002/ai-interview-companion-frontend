@@ -7,14 +7,18 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useAuth } from '@/context/AuthContext'
 import { Textarea } from '@/components/ui/textarea'
 
-import { Lightbulb, Loader, Pause, Play, RefreshCw, Sparkle, Sparkles } from 'lucide-react'
+import { Lightbulb, LoaderCircle, Pause, Play, RefreshCw, Sparkle, Sparkles } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { TaskResponse } from '@/types/TaskResponse'
 import { getFollowUpPrompt, getNextQuestionPrompt, getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
 
-import openaiLogo from '@/public/chatgpt-logo.webp';
+
 import { Skeleton } from '@/components/ui/skeleton'
+import ResponsePanel from './ResponsePanel'
+import ControlsPanel from './ControlsPanel'
+import ProtocolPanel from './ProtocolPanel'
+import { Protocol } from '@/types/Protocol'
 
 type Props = {
     localStream: MediaStream | null;
@@ -25,6 +29,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
 
     const { protocol, configurationMode, protocolString } = useAuth();
 
+    // A copy of the protocol to be used for the session, so the original is not modified
+    const [sessionProtocol, setSessionProtocol] = useState([...protocol]);
+
     const [selectedQuestion, setSelectedQuestion] = useState(0);
 
     const peerConnection = useRef<RTCPeerConnection>(null);
@@ -32,13 +39,29 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
     const [modelResponse, setModelResponse] = useState("Start the session for feedback to show up.");
     const [modelResponseDescription, setModelResponseDescription] = useState("Or press any of the buttons during a session.")
     const [isSessionActive, setIsSessionActive] = useState(false);
+    const [modelResponseType, setModelResponseType] = useState("feedback");
 
     const [responseInProgress, setResponseInProgress] = useState(false);
 
     const combinedStreamRef = useRef<MediaStream | null>(null);
 
+    const [isResponseVisible, setIsResponseVisible] = useState(true);
+
+    const [elapsedTime, setElapsedTime] = useState(0);
+
+
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Function to format time as mm:ss
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
     async function startSession() {
         try {
+
             // Get ephemeral key
             const tokenResponse = await fetch("/api/session", {
                 mode: 'cors',
@@ -114,20 +137,50 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
             // Store audio context for cleanup
             combinedStreamRef.current = destination.stream;
 
+            // Start the timer
+            setElapsedTime(0);
+            timerRef.current = setInterval(() => {
+                setElapsedTime(prev => prev + 1);
+            }, 1000);
+
         } catch (error) {
             console.error('Error starting OpenAI session:', error);
         }
     }
 
+
+
     // Stop current session, clean up peer connection and data channel
     function stopSession() {
-        if (combinedStreamRef.current) {
-            combinedStreamRef.current.getTracks().forEach(track => track.stop());
+        // Clear the timer
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
         }
+
+        // Clean up audio streams
+        if (combinedStreamRef.current) {
+            combinedStreamRef.current.getTracks().forEach(track => {
+                track.stop();
+                track.enabled = false;
+            });
+        }
+
+        // Clean up data channel
         if (dataChannel) {
             dataChannel.close();
         }
+
+        // Clean up peer connection
         if (peerConnection.current) {
+            // Remove all tracks before closing
+            peerConnection.current.getSenders().forEach((sender) => {
+                if (sender.track) {
+                    sender.track.stop();
+                    sender.track.enabled = false;
+                }
+                peerConnection.current?.removeTrack(sender);
+            });
             peerConnection.current.close();
         }
 
@@ -197,41 +250,46 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
     }
 
     const handleResponseDone = (parsedData: TaskResponse) => {
+        setIsResponseVisible(false); // Hide first
+        setTimeout(() => {
+            setResponseInProgress(false);
+            
+            switch (parsedData.task) {
+                case "feedback":
+                    if (parsedData.feedback?.toLowerCase() === "none" || parsedData.reason?.toLowerCase() === "none") return;
+                    if (parsedData.feedback) setModelResponse(parsedData.feedback);
+                    setModelResponseDescription(parsedData.reason);
+                    break;
 
-        setResponseInProgress(false);
-        console.log("responseInProgress?", responseInProgress)
+                case "follow-up":
+                    if (parsedData.follow_up) setModelResponse(`Follow Up: "${parsedData.follow_up}"`);
+                    setModelResponseDescription(parsedData.reason);
+                    break;
 
-        switch (parsedData.task) {
-            case "feedback":
-                if (parsedData.feedback?.toLowerCase() === "none" || parsedData.reason?.toLowerCase() === "none") return;
-                if (parsedData.feedback) setModelResponse(parsedData.feedback);
-                setModelResponseDescription(parsedData.reason);
-                break;
+                case "rephrase":
+                    if (parsedData.rephrased_question) setModelResponse(`Rephrased Question: ${parsedData.rephrased_question}`);
+                    setModelResponseDescription(parsedData.reason);
+                    
+                    setSessionProtocol((sessionProtocol.map((question, index) => index === selectedQuestion ? { ...question, question: parsedData.rephrased_question } : question)) as Protocol);
+                    break;
 
-            case "follow-up":
-                if (parsedData.follow_up) setModelResponse(`Follow Up: "${parsedData.follow_up}"`);
-                setModelResponseDescription(parsedData.reason);
-                break;
+                case "next-question":
+                    if (parsedData.next_question_id) {
+                        setSelectedQuestion(parsedData.next_question_id);
+                        setModelResponse(`Next Question: "${sessionProtocol[parsedData.next_question_id].question}"`);
+                    }
+                    setModelResponseDescription(parsedData.reason);
+                    break;
 
-            case "rephrase":
-                if (parsedData.rephrased_question) setModelResponse(`Rephrased Question: ${parsedData.rephrased_question}`);
-                // TODO: make this change the protocol one too (copy may be needed?)
-                setModelResponseDescription(parsedData.reason);
-                break;
+                default:
+                    console.log("Unknown task type:", parsedData.task);
+                    break;
+            }
 
-            case "next-question":
-                if (parsedData.next_question_id) {
-                    setSelectedQuestion(parsedData.next_question_id);
-                    setModelResponse(`Next Question: "${protocol[parsedData.next_question_id].question}"`);
-                }
-                setModelResponseDescription(parsedData.reason);
-                break;
-
-            default:
-                console.log("Unknown task type:", parsedData.task);
-                break;
-        }
-
+            setModelResponseType(parsedData.task);
+            // Show the response with animation
+            setIsResponseVisible(true);
+        }, 100); // Small delay to ensure state updates properly
     }
 
 
@@ -250,6 +308,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
     const handleRephrase = (question_id: number, question: string) => {
         getTaskResponse(getRephrasePrompt(question));
         console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
+        setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
     }
 
     const handleNextQuestion = () => {
@@ -296,67 +355,41 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
         }
     }, [dataChannel]);
 
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+        };
+    }, []);
+
     return (
-        <Card className='h-full pt-4'>
+        <Card className='h-full'>
+
+            {
+                configurationMode === "none" &&
+                <CardHeader>
+                    <CardTitle className='text-2xl'>Protocol</CardTitle>
+                </CardHeader>
+            }
             <CardContent className='h-full flex flex-col gap-2'>
 
-                <Card className='p-4 flex gap-2 items-center justify-start'>
-
-                    <div className="flex gap-2 items-center">
-                        <img src={openaiLogo.src} alt="OpenAI Logo" className="size-12 rounded-full" />
-                        <div className='w-[1px] bg-white h-20'></div>
-                        <div className="flex flex-col">
-                            <div>
-                                {responseInProgress ? <Skeleton className='w-[400px] h-8 mb-2' /> : <h3 className='text-base'>{modelResponse}</h3>}
-                            </div>
-                            {/* <div className='w-6 bg-white h-[2px] my-2'></div> */}
-                            <div>
-                                {responseInProgress ? <Skeleton className='w-[300px] h-8' /> : <p className='text-sm'>{modelResponseDescription}</p>}
-                            </div>
-                        </div>
-                    </div>
-                </Card>
-                <Card className='p-4 flex justify-between'>
-                    {configurationMode === "interactive" || configurationMode === "full" ?
-                        <div className='flex gap-2'>
-                            {/* <Button onClick={generateTextResponse}>Test CMD</Button> */}
-                            <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetFollowUp}>{responseInProgress && <Loader className='size-4 animate-spin' />} Generate follow-up</Button>
-                            <Button disabled={!isSessionActive || responseInProgress} onClick={handleNextQuestion}> {responseInProgress && <Loader className='size-4 animate-spin'/>} Next Question </Button>
-                        </div>
-                        :
-                    <p className='text-sm text-white/60'>Interactive mode not enabled</p>}
-                    <div>
-                        {isSessionActive ? <Button className='bg-red-500' onClick={stopSession}> <Pause /> Stop AI</Button> : <Button onClick={startSession}> <Play /> Start AI</Button>}
-                    </div>
-                </Card>
+                {(configurationMode !== "none" && configurationMode !== "post") && <ResponsePanel responseInProgress={responseInProgress} modelResponseType={modelResponseType}  modelResponse={modelResponse} modelResponseDescription={modelResponseDescription} />}
+                {(configurationMode !== "none" && configurationMode !== "post") && <ControlsPanel 
+                    configurationMode={configurationMode} 
+                    isSessionActive={isSessionActive} 
+                    responseInProgress={responseInProgress} 
+                    handleGetFollowUp={handleGetFollowUp} 
+                    handleNextQuestion={handleNextQuestion} 
+                    stopSession={stopSession} 
+                    startSession={startSession}
+                    elapsedTime={formatTime(elapsedTime)}
+                />}
 
                 <Separator />
 
-                <div className="h-full flex flex-col gap-2 overflow-y-scroll">
-                    {
-                        protocol.map((question, q_index) => (
-                            <Card
-                                className='p-3 flex flex-row justify-start items-center gap-2'
-                                style={q_index === selectedQuestion ? { borderColor: "red" } : {}}
-                                key={q_index}
-                            >
-                                <div className=" mr-auto">
-                                    <p className='text-white/90'>{question.question}</p>
-                                    {/* {
-                                        (q_index === selectedQuestion) &&
-                                        (<div className='flex gap-1 justify-start items-center'>
-                                            <Checkbox className='size-3' />
-                                            <p className='text-sm text-white/60'>Follow-up</p>
-                                        </div>)
-                                    } */}
-
-                                </div>
-                                <RefreshCw className='hover:scale-110 size-6 hover:cursor-pointer' onClick={() => handleRephrase(q_index, question.question)} />
-                                <Checkbox className='size-6' />
-                            </Card>
-                        ))
-                    }
-                </div>
+                <ProtocolPanel sessionProtocol={sessionProtocol} selectedQuestion={selectedQuestion} setSelectedQuestion={setSelectedQuestion} configurationMode={configurationMode} handleRephrase={handleRephrase} />
 
 
             </CardContent>
