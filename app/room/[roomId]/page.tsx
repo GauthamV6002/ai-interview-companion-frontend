@@ -17,6 +17,7 @@ import {
 import RealtimeAssistancePanel from "@/components/AssistancePanel/RealtimeAssistance/RealtimeAssistancePanel";
 import VideoChat from "@/components/VideoChat/VideoChat";
 import NotesPanel from "@/components/AssistancePanel/IntervieweeAssistance/NotesPanel";
+import InstructionsDialog from "@/components/InstructionsDialog";
 
 // Use a basic STUN server configuration (you can add TURN servers if needed)
 const configuration = {
@@ -30,6 +31,7 @@ export default function RoomPage() {
     const router = useRouter();
     const roomId = params.roomId as string;
     const isCaller = searchParams.get("caller") === "true";
+    const [showInstructions, setShowInstructions] = useState(true);
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -376,6 +378,10 @@ export default function RoomPage() {
 
     return (
         <div className="p-4 h-screen flex items-center gap-8">
+            <InstructionsDialog 
+                isOpen={showInstructions} 
+                onClose={() => setShowInstructions(false)} 
+            />
             <div className="w-1/2 h-[90vh]">
                 <VideoChat 
                     localVideoRef={localVideoRef} 
@@ -392,7 +398,11 @@ export default function RoomPage() {
             <div className="w-1/2 h-[90vh]">
                 {
                     isCaller ?
-                        <RealtimeAssistancePanel localStream={localStream} remoteAudioStream={remoteAudioStream} /> 
+                        <RealtimeAssistancePanel 
+                            localStream={localStream} 
+                            remoteAudioStream={remoteAudioStream} 
+                            onShowInstructions={() => setShowInstructions(true)}
+                        /> 
                         :
                         <NotesPanel />
                 }

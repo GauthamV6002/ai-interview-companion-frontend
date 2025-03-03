@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Play } from 'lucide-react'
 import { Pause } from 'lucide-react'
+import { HelpCircle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { LoaderCircle } from 'lucide-react'
 import React from 'react'
@@ -14,9 +15,10 @@ type Props = {
     stopSession: () => void;
     startSession: () => void;
     elapsedTime: string;
+    onShowInstructions: () => void;
 }
 
-const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetFollowUp, handleNextQuestion, stopSession, startSession, elapsedTime }: Props) => {
+const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetFollowUp, handleNextQuestion, stopSession, startSession, elapsedTime, onShowInstructions }: Props) => {
     return (
         <Card className='p-4 flex justify-between items-center'>
             {configurationMode === "interactive" || configurationMode === "full" ?
@@ -29,7 +31,16 @@ const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress,
                 <p className='text-white/60'>Interactive mode not enabled</p>}
             <div className='flex items-center gap-4'>
                 <span className='font-mono text-lg'>{elapsedTime}</span>
-                {isSessionActive ? <Button className='bg-red-500' onClick={stopSession}> <Pause className="mr-2" /> Stop AI</Button> : <Button onClick={startSession}> <Play className="mr-2" /> Start AI</Button>}
+                <div className='flex gap-2'>
+                    {isSessionActive ? 
+                        <Button className='bg-red-500' onClick={stopSession}> <Pause className="mr-2" /> Stop AI</Button> 
+                        : 
+                        <Button onClick={startSession}> <Play className="mr-2" /> Start AI</Button>
+                    }
+                    <Button variant="outline" size="icon" onClick={onShowInstructions}>
+                        <HelpCircle className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
         </Card>
     )

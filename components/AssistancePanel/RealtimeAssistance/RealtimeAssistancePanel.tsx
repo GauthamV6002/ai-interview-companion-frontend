@@ -19,15 +19,18 @@ import ResponsePanel from './ResponsePanel'
 import ControlsPanel from './ControlsPanel'
 import ProtocolPanel from './ProtocolPanel'
 import { Protocol } from '@/types/Protocol'
+import { useTranscriptLog } from '@/context/TranscriptLogContext'
 
 type Props = {
     localStream: MediaStream | null;
     remoteAudioStream: MediaStream | null;
+    onShowInstructions: () => void;
 }
 
-const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
+const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, onShowInstructions }: Props) => {
 
     const { protocol, configurationMode, protocolString } = useAuth();
+    const { transcript, elapsedTime, setTranscript, setElapsedTime } = useTranscriptLog();
 
     // A copy of the protocol to be used for the session, so the original is not modified
     const [sessionProtocol, setSessionProtocol] = useState([...protocol]);
@@ -46,8 +49,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
     const combinedStreamRef = useRef<MediaStream | null>(null);
 
     const [isResponseVisible, setIsResponseVisible] = useState(true);
-
-    const [elapsedTime, setElapsedTime] = useState(0);
 
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -134,11 +135,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
             peerConnection.current = pc;
             console.log('OpenAI session started successfully');
 
+            setTranscript(t => [...t, {
+                timestamp: formatTime(elapsedTime),
+                aiEvent: "start-ai",
+            }]);
+
             // Store audio context for cleanup
             combinedStreamRef.current = destination.stream;
 
+            
             // Start the timer
-            setElapsedTime(0);
             timerRef.current = setInterval(() => {
                 setElapsedTime(prev => prev + 1);
             }, 1000);
@@ -188,6 +194,11 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
         setDataChannel(null);
         peerConnection.current = null;
         combinedStreamRef.current = null;
+
+        setTranscript(t => [...t, {
+            timestamp: formatTime(elapsedTime),
+            aiEvent: "stop-ai",
+        }]);
 
         console.log('Session closed and cleaned up');
     }
@@ -252,6 +263,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
     const handleResponseDone = (parsedData: TaskResponse) => {
         setIsResponseVisible(false); // Hide first
         setTimeout(() => {
+
+            setTranscript(t => [...t, {
+                timestamp: formatTime(elapsedTime),
+                aiEvent: parsedData.task,
+                aiEventDirection: "response",
+                aiEventData: `AI ${parsedData.task}: ${parsedData.feedback || parsedData.follow_up || parsedData.rephrased_question || parsedData.next_question_id}
+                ${parsedData.reason ? `\nReason: ${parsedData.reason}` : ""}
+                `,
+            }]);
+
             setResponseInProgress(false);
             
             switch (parsedData.task) {
@@ -295,25 +316,38 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
 
     // CLIENT SIDE AI RESPONSE TRIGGERS
 
+    const addTranscriptAIAskEvent = (task: ("feedback" | "follow-up" | "next-question" | "rephrase")) => {
+        setTranscript(t => [...t, {
+            timestamp: formatTime(elapsedTime),
+            aiEvent: task,
+            aiEventDirection: "ask",
+        }]);
+    }
+
+
     const handleGetFeedback = () => {
         getTaskResponse(getQuestionFeedbackPrompt());
         console.log("(AI TASK: feedback) sent");
+        addTranscriptAIAskEvent("feedback");
     }
 
     const handleGetFollowUp = () => {
         getTaskResponse(getFollowUpPrompt());
         console.log("(AI TASK: follow-up) sent");
+        addTranscriptAIAskEvent("follow-up");
     }
 
     const handleRephrase = (question_id: number, question: string) => {
         getTaskResponse(getRephrasePrompt(question));
         console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
         setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
+        addTranscriptAIAskEvent("rephrase");
     }
 
     const handleNextQuestion = () => {
         getTaskResponse(getNextQuestionPrompt(protocolString));
         console.log("(AI TASK: next-question) sent, protocol:", protocolString);
+        addTranscriptAIAskEvent("next-question");
     }
 
     // Attach event listeners to the data channel when a new one is created
@@ -385,6 +419,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream }: Props) => {
                     stopSession={stopSession} 
                     startSession={startSession}
                     elapsedTime={formatTime(elapsedTime)}
+                    onShowInstructions={onShowInstructions}
                 />}
 
                 <Separator />

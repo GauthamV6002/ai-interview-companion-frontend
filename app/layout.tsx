@@ -1,9 +1,9 @@
 "use client"
 import "./globals.css";
 import type { Metadata } from "next";
-import { ThemeProvider } from "@/components/Theme/ThemeProvider";
+import { ThemeProvider } from "@/Theme/ThemeProvider";
 import { AuthProvider } from "@/context/AuthContext";
-// import { AuthProvider } from "@/context/AuthContext";
+import { TranscriptLogProvider } from "@/context/TranscriptLogContext";
 
 // export const metadata: Metadata = {
 //   title: "AI Interview Companion",
@@ -20,7 +20,9 @@ export default function RootLayout({
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            {children}
+            <TranscriptLogProvider>
+              {children}
+            </TranscriptLogProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

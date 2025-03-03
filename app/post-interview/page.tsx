@@ -8,7 +8,7 @@ type Props = {}
 
 const page = (props: Props) => {
 
-    const [transcriptionProgress, setTranscriptionProgress] = useState(0);
+    const [transcriptionProgress, setTranscriptionProgress] = useState(100);
 
     return (
         <div className='bg-black'>
