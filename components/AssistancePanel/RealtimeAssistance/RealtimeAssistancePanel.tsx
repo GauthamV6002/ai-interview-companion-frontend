@@ -3,11 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '../../ui/button'
 
 
-import { useAuth } from '@/context/AuthContext'
+import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 
 import { Separator } from '@/components/ui/separator'
-import { TaskResponse } from '@/types/TaskResponse'
-import { getFollowUpPrompt, getNextQuestionPrompt, getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
+import { FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
+import { getFollowUpPrompt,getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
 
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,6 +16,7 @@ import ControlsPanel from './ControlsPanel'
 import ProtocolPanel from './ProtocolPanel'
 import { Protocol } from '@/types/Protocol'
 import { useTranscriptLog } from '@/context/TranscriptLogContext'
+import { useSearchParams } from 'next/navigation'
 
 type Props = {
     localStream: MediaStream | null;
@@ -24,43 +25,53 @@ type Props = {
     onShowInstructions: () => void;
 }
 
+// Helper function to convert time string (mm:ss) to seconds
+const timeStringToSeconds = (timeString: string) => {
+    const [minutes, seconds] = timeString.split(':').map(Number);
+    return minutes * 60 + seconds;
+};
+
+// Function to format time as mm:ss
+const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
 const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStream, onShowInstructions }: Props) => {
 
-    const { protocol, configurationMode, protocolString } = useAuth();
+    const { protocol, configurationMode, setConfigurationMode, protocolString } = useAuth();
     const { transcript, elapsedTime, setTranscript, setElapsedTime, addAudioBlob } = useTranscriptLog();
 
     // A copy of the protocol to be used for the session, so the original is not modified
     const [sessionProtocol, setSessionProtocol] = useState([...protocol]);
-
     const [selectedQuestion, setSelectedQuestion] = useState(0);
 
+    
+    const [isSessionActive, setIsSessionActive] = useState(false);
     const peerConnection = useRef<RTCPeerConnection>(null);
     const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
-    const [modelResponse, setModelResponse] = useState("Start the session for feedback to show up.");
-    const [modelResponseDescription, setModelResponseDescription] = useState("Or press any of the buttons during a session.")
-    const [isSessionActive, setIsSessionActive] = useState(false);
-    const [modelResponseType, setModelResponseType] = useState("feedback");
+    const combinedStreamRef = useRef<MediaStream | null>(null);
 
+
+    const [modelResponses, setModelResponses] = useState<ModelResponse[]>([]);
     const [responseInProgress, setResponseInProgress] = useState(false);
 
-    const combinedStreamRef = useRef<MediaStream | null>(null);
     
     // Audio recording references
+    const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const recordedChunksRef = useRef<Blob[]>([]);
     const recordingStartTimeRef = useRef<string>('');
-
-    const [isResponseVisible, setIsResponseVisible] = useState(true);
-    const [isRecording, setIsRecording] = useState(false);
-
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Function to format time as mm:ss
-    const formatTime = (seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
+
+
+    const searchParams = useSearchParams();
+    useEffect(() => {
+        const mode = searchParams.get("mode");
+        if (mode) setConfigurationMode(mode as ConfigurationMode);
+    }, []);
 
     // Function to start recording audio
     const startRecording = () => {
@@ -155,12 +166,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             setIsRecording(false);
             console.log('Recording stopped');
         }
-    };
-    
-    // Helper function to convert time string (mm:ss) to seconds
-    const timeStringToSeconds = (timeString: string) => {
-        const [minutes, seconds] = timeString.split(':').map(Number);
-        return minutes * 60 + seconds;
     };
 
     async function startSession() {
@@ -259,8 +264,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     }
 
-
-
     // Stop current session, clean up peer connection and data channel
     function stopSession() {
         // Stop recording
@@ -331,7 +334,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     }
 
-    function getTaskResponse(prompt: string, maxOutputTokens = 2048) {
+    function getTaskResponse(prompt: string, task: TaskType) {
 
         // Check if a response is alr being generated, if so, wait until it is finished
 
@@ -345,7 +348,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 event_id: crypto.randomUUID(),
                 response: {
                     modalities: ["text"],
-                    // "max_output_tokens": maxOutputTokens,
+                    metadata: {
+                        task: task
+                    },
                     instructions: prompt
                 },
             }
@@ -367,57 +372,63 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     }
 
-    const handleResponseDone = (parsedData: TaskResponse) => {
-        setIsResponseVisible(false); // Hide first
-        setTimeout(() => {
+    const handleResponseDone = (data: any) => {
 
-            setTranscript(t => [...t, {
-                timestamp: formatTime(elapsedTime),
-                aiEvent: parsedData.task,
-                aiEventDirection: "response",
-                aiEventData: `AI ${parsedData.task}: ${parsedData.feedback || parsedData.follow_up || parsedData.rephrased_question || parsedData.next_question_id}
-                ${parsedData.reason ? `\nReason: ${parsedData.reason}` : ""}
-                `,
-            }]);
+        if (!data.response.output[0]) return;
+        console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
 
-            setResponseInProgress(false);
+        try {
             
-            switch (parsedData.task) {
+            const responseString = data.response.output[0].content[0].text;
+            setTimeout(() => { setResponseInProgress(false) }, 100);
+
+            if(!data.response.metadata) {
+                console.log("ERROR: No metadata found in response");
+                return;
+            }
+            
+            switch (data.response.metadata?.task) {
                 case "feedback":
-                    if (parsedData.feedback?.toLowerCase() === "none" || parsedData.reason?.toLowerCase() === "none") return;
-                    if (parsedData.feedback) setModelResponse(parsedData.feedback);
-                    setModelResponseDescription(parsedData.reason);
+                    if(responseString.toLowerCase().includes("none")) return; // Someone didn't finish talking
+
+                    setModelResponses(prev => [...prev, {
+                        task: "feedback",
+                        response: JSON.parse(responseString) as FeedbackResponse, 
+                    }]);
                     break;
 
                 case "follow-up":
-                    if (parsedData.follow_up) setModelResponse(`Follow Up: "${parsedData.follow_up}"`);
-                    setModelResponseDescription(parsedData.reason);
+                    setModelResponses(prev => [...prev, {
+                        task: "follow-up",
+                        response: responseString as FollowUpResponse, 
+                    }]);
                     break;
 
                 case "rephrase":
-                    if (parsedData.rephrased_question) setModelResponse(`Rephrased Question: ${parsedData.rephrased_question}`);
-                    setModelResponseDescription(parsedData.reason);
-                    
-                    setSessionProtocol((sessionProtocol.map((question, index) => index === selectedQuestion ? { ...question, question: parsedData.rephrased_question } : question)) as Protocol);
-                    break;
-
-                case "next-question":
-                    if (parsedData.next_question_id) {
-                        setSelectedQuestion(parsedData.next_question_id);
-                        setModelResponse(`Next Question: "${sessionProtocol[parsedData.next_question_id].question}"`);
-                    }
-                    setModelResponseDescription(parsedData.reason);
+                    setModelResponses(prev => [...prev, {
+                        task: "rephrase",
+                        response: responseString as RephraseResponse, 
+                    }]);
                     break;
 
                 default:
-                    console.log("Unknown task type:", parsedData.task);
+                    console.log("Unknown task type: ", data.response.metadata?.task);
                     break;
             }
 
-            setModelResponseType(parsedData.task);
-            // Show the response with animation
-            setIsResponseVisible(true);
-        }, 100); // Small delay to ensure state updates properly
+            
+            setTranscript(t => [...t, {
+                timestamp: formatTime(elapsedTime),
+                aiEvent: data.response.metadata?.task,
+                aiEventDirection: "response",
+                aiEventData: `AI ${data.response.metadata?.task}: ${responseString}`,
+            }]);
+            
+        } catch (err) {
+            // Catches edge cases like cancellations due to interuptions
+            console.log("ERROR: Parsing model response failed. Recieved:", data.response.output[0].content[0].text);
+            console.log(err)
+        }
     }
 
 
@@ -432,29 +443,24 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     }
 
 
+
     const handleGetFeedback = () => {
-        getTaskResponse(getQuestionFeedbackPrompt());
+        getTaskResponse(getQuestionFeedbackPrompt(), "feedback");
         console.log("(AI TASK: feedback) sent");
         addTranscriptAIAskEvent("feedback");
     }
 
     const handleGetFollowUp = () => {
-        getTaskResponse(getFollowUpPrompt());
+        getTaskResponse(getFollowUpPrompt(), "follow-up");
         console.log("(AI TASK: follow-up) sent");
         addTranscriptAIAskEvent("follow-up");
     }
 
     const handleRephrase = (question_id: number, question: string) => {
-        getTaskResponse(getRephrasePrompt(question));
+        getTaskResponse(getRephrasePrompt(question), "rephrase");
         console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
         setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
         addTranscriptAIAskEvent("rephrase");
-    }
-
-    const handleNextQuestion = () => {
-        getTaskResponse(getNextQuestionPrompt(protocolString));
-        console.log("(AI TASK: next-question) sent, protocol:", protocolString);
-        addTranscriptAIAskEvent("next-question");
     }
 
     // Attach event listeners to the data channel when a new one is created
@@ -462,25 +468,14 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         if (dataChannel) {
             // Append new server events to the list
             dataChannel.addEventListener("message", (e) => {
+
                 const data = JSON.parse(e.data);
+
                 if (data.type === "response.done") {
-
-                    if (!data.response.output[0]) return;
-                    console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
-
-                    try {
-                        const parsedData = JSON.parse(data.response.output[0].content[0].text) as TaskResponse;
-                        handleResponseDone(parsedData);
-                    } catch (err) {
-                        // Catches edge cases like cancellations due to interuptions
-                        console.log("ERROR: Parsing model response failed. Recieved:", data.response.output[0].content[0].text);
-                        console.log(err)
-                    }
-
+                    handleResponseDone(data);
                 }
 
                 if (data.type === "input_audio_buffer.committed") {
-                    // Someone finished talking
                     if (configurationMode === "responsive" || configurationMode === "full") handleGetFeedback();
                 }
 
@@ -519,13 +514,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             }
             <CardContent className='h-full flex flex-col gap-2'>
 
-                {(configurationMode !== "none" && configurationMode !== "post") && <ResponsePanel responseInProgress={responseInProgress} modelResponseType={modelResponseType}  modelResponse={modelResponse} modelResponseDescription={modelResponseDescription} />}
+                {(configurationMode !== "none" && configurationMode !== "post") && <ResponsePanel 
+                responseInProgress={responseInProgress}
+                modelResponses={modelResponses}
+                />}
+                
                 {(configurationMode !== "none" && configurationMode !== "post") && <ControlsPanel 
                     configurationMode={configurationMode} 
                     isSessionActive={isSessionActive} 
                     responseInProgress={responseInProgress} 
-                    handleGetFollowUp={handleGetFollowUp} 
-                    handleNextQuestion={handleNextQuestion} 
+                    handleGetFollowUp={handleGetFollowUp}  
                     stopSession={stopSession} 
                     startSession={startSession}
                     elapsedTime={formatTime(elapsedTime)}
