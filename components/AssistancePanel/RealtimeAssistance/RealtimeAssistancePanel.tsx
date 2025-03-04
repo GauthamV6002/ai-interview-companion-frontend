@@ -3,12 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '../../ui/button'
 
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useAuth } from '@/context/AuthContext'
-import { Textarea } from '@/components/ui/textarea'
 
-import { Lightbulb, LoaderCircle, Pause, Play, RefreshCw, Sparkle, Sparkles } from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { TaskResponse } from '@/types/TaskResponse'
 import { getFollowUpPrompt, getNextQuestionPrompt, getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
@@ -31,7 +27,7 @@ type Props = {
 const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStream, onShowInstructions }: Props) => {
 
     const { protocol, configurationMode, protocolString } = useAuth();
-    const { transcript, elapsedTime, setTranscript, setElapsedTime, addAudioBlob, addAudioSegment } = useTranscriptLog();
+    const { transcript, elapsedTime, setTranscript, setElapsedTime, addAudioBlob } = useTranscriptLog();
 
     // A copy of the protocol to be used for the session, so the original is not modified
     const [sessionProtocol, setSessionProtocol] = useState([...protocol]);
@@ -54,16 +50,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const recordedChunksRef = useRef<Blob[]>([]);
     const recordingStartTimeRef = useRef<string>('');
 
-    // Segmented audio recording
-    const segmentRecorderRef = useRef<MediaRecorder | null>(null);
-    const segmentChunksRef = useRef<Blob[]>([]);
-    const isSpeechActiveRef = useRef<boolean>(false);
-    const pauseStartTimeRef = useRef<number>(0);
-    const speechStartTimeRef = useRef<string>('');
-
     const [isResponseVisible, setIsResponseVisible] = useState(true);
     const [isRecording, setIsRecording] = useState(false);
-    const [isSegmentRecording, setIsSegmentRecording] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -124,120 +112,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     };
 
-    // Function to start segment recording (when speech is detected)
-    const startSegmentRecording = () => {
-        if (!mixedAudioStream || isSegmentRecording) {
-            return;
-        }
-
-        segmentChunksRef.current = [];
-        speechStartTimeRef.current = formatTime(elapsedTime);
-        
-        try {
-            // Use the same audio options as the main recorder
-            const options = { 
-                mimeType: 'audio/webm;codecs=opus',
-                audioBitsPerSecond: 128000
-            };
-            
-            let segmentRecorder;
-            try {
-                segmentRecorder = new MediaRecorder(mixedAudioStream, options);
-            } catch (e) {
-                console.warn('audio/webm;codecs=opus not supported for segments, falling back to default');
-                segmentRecorder = new MediaRecorder(mixedAudioStream);
-            }
-            
-            segmentRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    segmentChunksRef.current.push(event.data);
-                }
-            };
-            
-            // Set up the onstop handler when creating the recorder
-            segmentRecorder.onstop = () => {
-                const currentTime = formatTime(elapsedTime);
-                
-                if (segmentChunksRef.current.length === 0) {
-                    console.log('No segment data available');
-                    return;
-                }
-                
-                try {
-                    // Create a blob from the recorded chunks
-                    const blob = new Blob(segmentChunksRef.current, { type: 'audio/webm' });
-                    
-                    // Only add segments that are reasonably long (more than 200ms)
-                    if (blob.size > 500) {
-                        // Add the audio segment to the context
-                        addAudioSegment({
-                            type: 'audio',
-                            timestamp: speechStartTimeRef.current,
-                            blob
-                        });
-                        
-                        console.log('Audio segment saved, started at', speechStartTimeRef.current, 'ended at', currentTime, 'size:', blob.size);
-                    } else {
-                        console.log('Segment too small, discarding. Size:', blob.size);
-                    }
-                } catch (err) {
-                    console.error('Error saving segment:', err);
-                } finally {
-                    setIsSegmentRecording(false);
-                }
-            };
-            
-            // For speech segments, we want smaller chunks for better precision
-            segmentRecorder.start(200);
-            segmentRecorderRef.current = segmentRecorder;
-            setIsSegmentRecording(true);
-            
-            console.log('Segment recording started at', speechStartTimeRef.current);
-        } catch (err) {
-            console.error('Error starting segment recording:', err);
-        }
-    };
-
-    // Function to stop segment recording
-    const stopSegmentRecording = () => {
-        if (!segmentRecorderRef.current || !isSegmentRecording) {
-            return;
-        }
-        
-        try {
-            // Stop the recorder - this will trigger the onstop event
-            segmentRecorderRef.current.stop();
-            console.log('Stopping segment recording');
-        } catch (err) {
-            console.error('Error stopping segment recording:', err);
-            setIsSegmentRecording(false);
-        }
-        
-        // We'll set this to null after the onstop event has triggered
-        // in the next cycle to avoid race conditions
-        setTimeout(() => {
-            segmentRecorderRef.current = null;
-        }, 0);
-    };
-
-    // Function to record a pause between speech segments
-    const recordPause = (pauseDuration: number) => {
-        // Only record pauses longer than 500ms
-        if (pauseDuration >= 500) { 
-            const pauseTimestamp = formatTime(elapsedTime - Math.floor(pauseDuration / 1000));
-            
-            addAudioSegment({
-                type: 'pause',
-                timestamp: pauseTimestamp,
-                pauseDuration
-            });
-            
-            console.log(`Pause recorded: ${pauseDuration}ms at ${pauseTimestamp}`);
-        } else {
-            console.log(`Pause too short (${pauseDuration}ms), not recording`);
-        }
-    };
-
     // Function to stop recording and save the audio to context
     const stopRecording = () => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -275,11 +149,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     console.error('Error saving recording to context:', err);
                 }
             };
-            
-            // Also stop segment recording if it's active
-            if (isSegmentRecording) {
-                stopSegmentRecording();
-            }
             
             // Stop the recorder
             mediaRecorderRef.current.stop();
@@ -390,6 +259,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     }
 
+
+
     // Stop current session, clean up peer connection and data channel
     function stopSession() {
         // Stop recording
@@ -460,39 +331,11 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     }
 
-    // Handle speech detection events
-    const handleSpeechEvent = (data: any) => {
-        if (data.type === "input_audio_buffer.speech_started") {
-            console.log("Speech started detected at", formatTime(elapsedTime));
-            isSpeechActiveRef.current = true;
-            
-            // If we were tracking a pause, calculate its duration
-            if (pauseStartTimeRef.current > 0) {
-                const pauseDuration = Date.now() - pauseStartTimeRef.current;
-                console.log(`Speech gap detected: ${pauseDuration}ms`);
-                recordPause(pauseDuration);
-                pauseStartTimeRef.current = 0;
-            }
-            
-            // Start recording this speech segment
-            startSegmentRecording();
-        } 
-        else if (data.type === "input_audio_buffer.speech_stopped") {
-            console.log("Speech stopped detected at", formatTime(elapsedTime));
-            isSpeechActiveRef.current = false;
-            
-            // Stop recording the current speech segment
-            stopSegmentRecording();
-            
-            // Start tracking the pause
-            pauseStartTimeRef.current = Date.now();
-            console.log("Started tracking pause at", new Date(pauseStartTimeRef.current).toISOString());
-        }
-    };
-
     function getTaskResponse(prompt: string, maxOutputTokens = 2048) {
-        // Check if a response is already being generated, if so, wait until it is finished
-        console.log('responseInProgess?', responseInProgress);
+
+        // Check if a response is alr being generated, if so, wait until it is finished
+
+        console.log('responseInProgess?', responseInProgress)
 
         const sendResponseSignal = () => {
             setResponseInProgress(true);
@@ -505,12 +348,12 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     // "max_output_tokens": maxOutputTokens,
                     instructions: prompt
                 },
-            };
+            }
 
             if (dataChannel) {
                 dataChannel.send(JSON.stringify(message));
             }
-        };
+        }
 
         if (!responseInProgress) {
             sendResponseSignal();
@@ -527,6 +370,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const handleResponseDone = (parsedData: TaskResponse) => {
         setIsResponseVisible(false); // Hide first
         setTimeout(() => {
+
             setTranscript(t => [...t, {
                 timestamp: formatTime(elapsedTime),
                 aiEvent: parsedData.task,
@@ -574,41 +418,44 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             // Show the response with animation
             setIsResponseVisible(true);
         }, 100); // Small delay to ensure state updates properly
-    };
+    }
+
 
     // CLIENT SIDE AI RESPONSE TRIGGERS
+
     const addTranscriptAIAskEvent = (task: ("feedback" | "follow-up" | "next-question" | "rephrase")) => {
         setTranscript(t => [...t, {
             timestamp: formatTime(elapsedTime),
             aiEvent: task,
             aiEventDirection: "ask",
         }]);
-    };
+    }
+
 
     const handleGetFeedback = () => {
         getTaskResponse(getQuestionFeedbackPrompt());
         console.log("(AI TASK: feedback) sent");
         addTranscriptAIAskEvent("feedback");
-    };
+    }
 
     const handleGetFollowUp = () => {
         getTaskResponse(getFollowUpPrompt());
         console.log("(AI TASK: follow-up) sent");
         addTranscriptAIAskEvent("follow-up");
-    };
+    }
 
     const handleRephrase = (question_id: number, question: string) => {
         getTaskResponse(getRephrasePrompt(question));
         console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
         setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
         addTranscriptAIAskEvent("rephrase");
-    };
+    }
 
     const handleNextQuestion = () => {
         getTaskResponse(getNextQuestionPrompt(protocolString));
         console.log("(AI TASK: next-question) sent, protocol:", protocolString);
         addTranscriptAIAskEvent("next-question");
-    };
+    }
 
     // Attach event listeners to the data channel when a new one is created
     useEffect(() => {
@@ -616,14 +463,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             // Append new server events to the list
             dataChannel.addEventListener("message", (e) => {
                 const data = JSON.parse(e.data);
-                
-                // Handle speech detection events
-                if (data.type === "input_audio_buffer.speech_started" || 
-                    data.type === "input_audio_buffer.speech_stopped") {
-                    handleSpeechEvent(data);
-                }
-                
                 if (data.type === "response.done") {
+
                     if (!data.response.output[0]) return;
                     console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
 
@@ -635,6 +476,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                         console.log("ERROR: Parsing model response failed. Recieved:", data.response.output[0].content[0].text);
                         console.log(err)
                     }
+
                 }
 
                 if (data.type === "input_audio_buffer.committed") {
@@ -650,6 +492,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 setIsSessionActive(true);
                 setSessionConfig();
             });
+
         }
     }, [dataChannel]);
 
@@ -662,14 +505,12 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                 mediaRecorderRef.current.stop();
             }
-            if (segmentRecorderRef.current && segmentRecorderRef.current.state !== 'inactive') {
-                segmentRecorderRef.current.stop();
-            }
         };
     }, []);
 
     return (
         <Card className='h-full'>
+
             {
                 configurationMode === "none" &&
                 <CardHeader>
@@ -677,6 +518,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 </CardHeader>
             }
             <CardContent className='h-full flex flex-col gap-2'>
+
                 {(configurationMode !== "none" && configurationMode !== "post") && <ResponsePanel responseInProgress={responseInProgress} modelResponseType={modelResponseType}  modelResponse={modelResponse} modelResponseDescription={modelResponseDescription} />}
                 {(configurationMode !== "none" && configurationMode !== "post") && <ControlsPanel 
                     configurationMode={configurationMode} 
@@ -694,6 +536,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 <Separator />
 
                 <ProtocolPanel sessionProtocol={sessionProtocol} selectedQuestion={selectedQuestion} setSelectedQuestion={setSelectedQuestion} configurationMode={configurationMode} handleRephrase={handleRephrase} />
+
+
             </CardContent>
         </Card>
     )

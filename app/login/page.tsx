@@ -82,7 +82,7 @@ const page = (props: Props) => {
 	
     const handleJoinRoom = async () => {
       const newRoomId = Math.random().toString(36).substring(2, 7);
-      router.push(`/room/${newRoomId}?caller=true`);
+      router.push(`/room/${newRoomId}?caller=true?mode=${configurationMode}`);
     };
 
 	return (
@@ -99,8 +99,8 @@ const page = (props: Props) => {
 							<SelectValue placeholder="AI Assistance Configuration" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="interactive">1. Responsive Assistance</SelectItem>
-							<SelectItem value="responsive">2. Interactive Assistance</SelectItem>
+							<SelectItem value="responsive">1. Responsive Assistance</SelectItem>
+							<SelectItem value="interactive">2. Interactive Assistance</SelectItem>
 							<SelectItem value="none">3. No AI Assistance</SelectItem>
 							<SelectItem value="full">4. Full AI Assistance (Not Implemented)</SelectItem>
 							<SelectItem value="post">5. Post Interview Assistance (Not Implemented)</SelectItem>
