@@ -9,7 +9,7 @@ type TranscriptItem = {
     pauseDuration?: number;
 
     // AI
-    aiEvent?: "feedback" | "follow-up" | "next-question" | "rephrase" | "start-ai" | "stop-ai";
+    aiEvent?: "feedback" | "follow-up" | "next-question" | "rephrase" | "start-ai" | "stop-ai" | "recording-started" | "recording-stopped";
     aiEventDirection?: "ask" | "response";
     aiEventData?: string; // JSON string
 

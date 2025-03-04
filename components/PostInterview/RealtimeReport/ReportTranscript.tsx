@@ -99,6 +99,9 @@ const TranscriptMessage = ({ item }: { item: TranscriptItem }) => {
         "start-ai": "Start AI Event: Realtime Connection Started.",
         "stop-ai": "Stop AI Event: Realtime Connection Ended.",
 
+        "recording-started": "Recording Started Event: Recording Started.",
+        "recording-stopped": "Recording Stopped Event: Recording Stopped.",
+
     }
 
     const getItemPayload = () => {
@@ -107,6 +110,15 @@ const TranscriptMessage = ({ item }: { item: TranscriptItem }) => {
         }
      
         if (item.aiEvent) {
+
+            if(item.aiEvent === "start-ai" || item.aiEvent === "stop-ai") {
+                return (
+                    <div className="text-sm italic flex flex-col">
+                        <span className="text-sm italic">{eventCodeToDescription[item.aiEvent]}</span>
+                    </div>
+                )
+            }
+
             return (
                 <div className="text-sm italic flex flex-col">
                     <span className="text-sm italic">{eventCodeToDescription[item.aiEvent]}</span>

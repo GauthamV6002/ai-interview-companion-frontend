@@ -4,6 +4,7 @@ import { Pause } from 'lucide-react'
 import { HelpCircle } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { LoaderCircle } from 'lucide-react'
+import { Mic } from 'lucide-react'
 import React from 'react'
 
 type Props = {
@@ -16,9 +17,10 @@ type Props = {
     startSession: () => void;
     elapsedTime: string;
     onShowInstructions: () => void;
+    isRecording: boolean;
 }
 
-const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetFollowUp, handleNextQuestion, stopSession, startSession, elapsedTime, onShowInstructions }: Props) => {
+const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetFollowUp, handleNextQuestion, stopSession, startSession, elapsedTime, onShowInstructions, isRecording }: Props) => {
     return (
         <Card className='p-4 flex justify-between items-center'>
             {configurationMode === "interactive" || configurationMode === "full" ?
@@ -31,6 +33,12 @@ const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress,
                 <p className='text-white/60'>Interactive mode not enabled</p>}
             <div className='flex items-center gap-4'>
                 <span className='font-mono text-lg'>{elapsedTime}</span>
+                {isRecording && (
+                    <div className='flex items-center gap-1 text-red-500'>
+                        <Mic className='h-4 w-4 animate-pulse' />
+                        <span className='text-sm'>Recording</span>
+                    </div>
+                )}
                 <div className='flex gap-2'>
                     {isSessionActive ? 
                         <Button className='bg-red-500' onClick={stopSession}> <Pause className="mr-2" /> Stop AI</Button> 

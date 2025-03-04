@@ -40,7 +40,8 @@ export default function RoomPage() {
     const [peerJoined, setPeerJoined] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<string>('waiting');
 
-    const [remoteAudioStream, setRemoteAudioStream] = useState<MediaStream | null>(null)
+    const [remoteAudioStream, setRemoteAudioStream] = useState<MediaStream | null>(null);
+    const [mixedAudioStream, setMixedAudioStream] = useState<MediaStream | null>(null);
 
     const remoteDescriptionSet = useRef(false);
 
@@ -51,6 +52,30 @@ export default function RoomPage() {
     const isMounted = useRef(true);
     // Add a ref to track if we're in the process of setting up the connection
     const isSettingUp = useRef(false);
+
+    // Create a mixed audio stream from local and remote audio
+    useEffect(() => {
+        if (localStream && remoteAudioStream) {
+            try {
+                const audioContext = new AudioContext();
+                const destination = audioContext.createMediaStreamDestination();
+
+                // Add local audio to the mix
+                const localSource = audioContext.createMediaStreamSource(localStream);
+                localSource.connect(destination);
+
+                // Add remote audio to the mix
+                const remoteSource = audioContext.createMediaStreamSource(remoteAudioStream);
+                remoteSource.connect(destination);
+
+                // Set the mixed audio stream
+                setMixedAudioStream(destination.stream);
+                console.log('Created mixed audio stream for recording');
+            } catch (err) {
+                console.error('Error creating mixed audio stream:', err);
+            }
+        }
+    }, [localStream, remoteAudioStream]);
 
     // Call Init
     useEffect(() => {
@@ -400,7 +425,8 @@ export default function RoomPage() {
                     isCaller ?
                         <RealtimeAssistancePanel 
                             localStream={localStream} 
-                            remoteAudioStream={remoteAudioStream} 
+                            remoteAudioStream={remoteAudioStream}
+                            mixedAudioStream={mixedAudioStream}
                             onShowInstructions={() => setShowInstructions(true)}
                         /> 
                         :

@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { useTranscriptLog } from '@/context/TranscriptLogContext';
 import { ArrowRight, Clock, Download, FileAudio, MessageSquare, MessageSquarePlus, RefreshCw, Timer, TimerOff } from 'lucide-react'
 import React from 'react'
 
@@ -36,6 +37,44 @@ const MetricsSection = ({ title, barColor, metrics }: MetricsSectionProps) => {
 type Props = {}
 
 const ReportSummary = (props: Props) => {
+
+    const { transcript, elapsedTime } = useTranscriptLog();
+
+    // Function to format time as mm:ss
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    const getAveragePauseDuration = () => {
+        const pauses = transcript.filter(item => item.pauseDuration);
+        const totalDuration = pauses.reduce((sum, item) => sum + (item.pauseDuration || 0), 0);
+        return (totalDuration / pauses.length).toFixed(1);
+    }
+
+    const getNumberOfPausesLongerThan3Seconds = () => {
+        const pauses = transcript.filter(item => item.pauseDuration && item.pauseDuration > 3000);
+        return pauses.length;
+    }
+
+    const getNumberOfRephrases = () => {
+        const rephrases = transcript.filter(item => item.aiEvent === "rephrase");
+        return rephrases.length;
+    }
+
+    const getNumberOfFollowUps = () => {
+        const followUps = transcript.filter(item => item.aiEvent === "follow-up");
+        return followUps.length;
+    }
+
+    const getNumberOfNextQuestions = () => {
+        const nextQuestions = transcript.filter(item => item.aiEvent === "next-question");
+        return nextQuestions.length;
+    }
+
+    
+
     return (
         <Card className='h-full flex-col flex'>
             {/* TODO: Remove red & white outlines */}
@@ -48,7 +87,7 @@ const ReportSummary = (props: Props) => {
                     title="Key Metrics"
                     barColor="bg-blue-500"
                     metrics={[
-                        { icon: <Clock className="h-4 w-4" />, text: "Elapsed Time: 10:00" },
+                        { icon: <Clock className="h-4 w-4" />, text: `Elapsed Time: ${formatTime(elapsedTime)}` },
                         { icon: <MessageSquare className="h-4 w-4" />, text: "Number of Questions Asked: 10" },
                         { icon: <MessageSquarePlus className="h-4 w-4" />, text: "Number of Questions Follow-up Questions Asked: 8" }
                     ]}
@@ -58,8 +97,8 @@ const ReportSummary = (props: Props) => {
                     title="Pause Analysis"
                     barColor="bg-green-500"
                     metrics={[
-                        { icon: <Timer className="h-4 w-4" />, text: "Average Pause Duration: 1.5 seconds" },
-                        { icon: <TimerOff className="h-4 w-4" />, text: "Number of Pauses Longer than 3 seconds: 2" }
+                        { icon: <Timer className="h-4 w-4" />, text: `Average Pause Duration: ${getAveragePauseDuration()}s` },
+                        { icon: <TimerOff className="h-4 w-4" />, text: `Number of Pauses Longer than 3 seconds: ${getNumberOfPausesLongerThan3Seconds()}` }
                     ]}
                 />
 
@@ -67,9 +106,9 @@ const ReportSummary = (props: Props) => {
                     title="AI Feature Usage"
                     barColor="bg-purple-500"
                     metrics={[
-                        { icon: <RefreshCw className="h-4 w-4" />, text: "Rephrase Usages: 10" },
-                        { icon: <MessageSquarePlus className="h-4 w-4" />, text: "Follow-up Usages: 8" },
-                        { icon: <ArrowRight className="h-4 w-4" />, text: "Next Question Usages: 2" }
+                        { icon: <RefreshCw className="h-4 w-4" />, text: `Rephrase Usages: ${getNumberOfRephrases()}` },
+                        { icon: <MessageSquarePlus className="h-4 w-4" />, text: `Follow-up Usages: ${getNumberOfFollowUps()}` },
+                        { icon: <ArrowRight className="h-4 w-4" />, text: `Next Question Usages: ${getNumberOfNextQuestions()}` }
                     ]}
                 />
             </CardContent>
