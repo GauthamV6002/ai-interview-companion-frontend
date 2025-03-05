@@ -1,3 +1,5 @@
+
+type AIEvent = "feedback" | "follow-up" | "next-question" | "rephrase" | "start-ai" | "stop-ai" | "recording-started" | "recording-stopped";
 type TranscriptItem = {
     timestamp: string;
     
@@ -9,7 +11,7 @@ type TranscriptItem = {
     pauseDuration?: number;
 
     // AI
-    aiEvent?: "feedback" | "follow-up" | "next-question" | "rephrase" | "start-ai" | "stop-ai" | "recording-started" | "recording-stopped";
+    aiEvent?: AIEvent;
     aiEventDirection?: "ask" | "response";
     aiEventData?: string; // JSON string
 
@@ -19,4 +21,4 @@ type TranscriptItem = {
 
 type Transcript = TranscriptItem[];
 
-export type { TranscriptItem, Transcript };
+export type { TranscriptItem, Transcript, AIEvent };

@@ -113,16 +113,17 @@ const TranscriptMessage = ({ item }: { item: TranscriptItem }) => {
 
             if(item.aiEvent === "start-ai" || item.aiEvent === "stop-ai") {
                 return (
-                    <div className="text-sm italic flex flex-col">
-                        <span className="text-sm italic">{eventCodeToDescription[item.aiEvent]}</span>
+                    <div className="text-sm flex flex-col">
+                        <code className="text-sm text-green-400 bg-gray-800 px-[6px] py-[2px] rounded-sm">{item.aiEvent}</code>
                     </div>
                 )
             }
 
             return (
-                <div className="text-sm italic flex flex-col">
-                    <span className="text-sm italic">{eventCodeToDescription[item.aiEvent]}</span>
-                    <span className="text-sm italic">{item.aiEventDirection === "ask" ? "Message Sent to Realtime API." : "AI Response: " + item.aiEventData}</span>
+                <div className="text-sm flex flex-col">
+                    <code className="text-sm w-fit text-green-400 bg-gray-800 px-[6px] py-[2px] rounded-sm">{item.aiEvent}</code>
+                    {item.aiEventDirection === "ask" ? <span className="text-sm">Message Sent to Realtime API.</span> 
+                    : <span className="text-sm"><span className="underline font-bold">AI Response:</span> {item.aiEventData}</span>}
                 </div>
             )
         }
@@ -198,7 +199,9 @@ const ReportTranscript = (props: Props) => {
             </CardHeader>
             <CardContent className="flex flex-col gap-6 overflow-y-scroll">
                 {transcript.map((item, index) => (
-                    <TranscriptMessage key={index} item={item} />
+                    // Skip recording-started and recording-stopped events
+                    (item.aiEvent !== "recording-started" && item.aiEvent !== "recording-stopped") 
+                    && <TranscriptMessage key={index} item={item} />
                 ))}
             </CardContent>
         </Card>

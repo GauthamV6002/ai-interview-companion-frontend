@@ -82,7 +82,7 @@ const page = (props: Props) => {
 	
     const handleJoinRoom = async () => {
       const newRoomId = Math.random().toString(36).substring(2, 7);
-      router.push(`/room/${newRoomId}?caller=true?mode=${configurationMode}`);
+      router.push(`/room/${newRoomId}?caller=true&mode=${configurationMode}`);
     };
 
 	return (

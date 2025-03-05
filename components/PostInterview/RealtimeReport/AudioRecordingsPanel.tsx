@@ -325,7 +325,7 @@ const AudioRecordingsPanel = () => {
     };
     
     return (
-        <Card className="w-full">
+        <Card className="mx-4">
             <CardHeader>
                 <CardTitle className="text-xl">Audio Recordings</CardTitle>
                 <CardDescription>

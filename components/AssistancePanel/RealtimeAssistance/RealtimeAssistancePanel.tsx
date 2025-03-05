@@ -7,6 +7,7 @@ import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 
 import { Separator } from '@/components/ui/separator'
 import { FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
+import { AIEvent } from '@/types/Transcript'
 import { getFollowUpPrompt,getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
 
 
@@ -56,6 +57,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
     const [modelResponses, setModelResponses] = useState<ModelResponse[]>([]);
     const [responseInProgress, setResponseInProgress] = useState(false);
+    const [responseInProgressId, setResponseInProgressId] = useState<string | null>(null);
 
     
     // Audio recording references
@@ -111,11 +113,11 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             setIsRecording(true);
             
             // Add recording started event to transcript
-            setTranscript(t => [...t, {
-                timestamp: formatTime(elapsedTime),
-                aiEvent: "recording-started" as any,
-                aiEventData: `Recording started at ${formatTime(elapsedTime)}`
-            }]);
+            // setTranscript(t => [...t, {
+            //     timestamp: formatTime(elapsedTime),
+            //     aiEvent: "recording-started" as any,
+            //     aiEventData: `Recording started at ${formatTime(elapsedTime)}`
+            // }]);
             
             console.log('Recording started with timeslice of 1000ms');
         } catch (err) {
@@ -144,16 +146,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     addAudioBlob(blob);
                     
                     // Add recording stopped event to transcript
-                    setTranscript(t => [...t, {
-                        timestamp: stopTime,
-                        aiEvent: "recording-stopped" as any,
-                        aiEventData: JSON.stringify({
-                            startTime: recordingStartTimeRef.current,
-                            stopTime: stopTime,
-                            duration: `${formatTime(elapsedTime - timeStringToSeconds(recordingStartTimeRef.current))}`,
-                            blobIndex: transcript.filter(item => item.aiEvent === "recording-stopped").length
-                        })
-                    }]);
+                    // setTranscript(t => [...t, {
+                    //     timestamp: stopTime,
+                    //     aiEvent: "recording-stopped" as any,
+                    //     aiEventData: JSON.stringify({
+                    //         startTime: recordingStartTimeRef.current,
+                    //         stopTime: stopTime,
+                    //         duration: `${formatTime(elapsedTime - timeStringToSeconds(recordingStartTimeRef.current))}`,
+                    //         blobIndex: transcript.filter(item => item.aiEvent === "recording-stopped").length
+                    //     })
+                    // }]);
                     
                     console.log('Recording saved to context');
                 } catch (err) {
@@ -243,10 +245,10 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             peerConnection.current = pc;
             console.log('OpenAI session started successfully');
 
-            setTranscript(t => [...t, {
-                timestamp: formatTime(elapsedTime),
-                aiEvent: "start-ai",
-            }]);
+            // setTranscript(t => [...t, {
+            //     timestamp: formatTime(elapsedTime),
+            //     aiEvent: "start-ai",
+            // }]);
 
             // Store audio context for cleanup
             combinedStreamRef.current = destination.stream;
@@ -306,10 +308,10 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         peerConnection.current = null;
         combinedStreamRef.current = null;
 
-        setTranscript(t => [...t, {
-            timestamp: formatTime(elapsedTime),
-            aiEvent: "stop-ai",
-        }]);
+        // setTranscript(t => [...t, {
+        //     timestamp: formatTime(elapsedTime),
+        //     aiEvent: "stop-ai",
+        // }]);
 
         console.log('Session closed and cleaned up');
     }
@@ -343,13 +345,17 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         const sendResponseSignal = () => {
             setResponseInProgress(true);
 
+            const responseId = crypto.randomUUID();
+            setResponseInProgressId(responseId);
+
             const message = {
                 type: "response.create",
                 event_id: crypto.randomUUID(),
                 response: {
                     modalities: ["text"],
                     metadata: {
-                        task: task
+                        task: task,
+                        response_id: responseId
                     },
                     instructions: prompt
                 },
@@ -374,7 +380,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
     const handleResponseDone = (data: any) => {
 
-        if (!data.response.output[0]) return;
+        
+        if (!data.response.output[0]) {
+            setResponseInProgress(false);
+            setResponseInProgressId(null);
+            console.log('No response output found, reverting');
+            // if (data.response.metadata?.response_id === responseInProgressId) {
+            // }
+            return;
+        }
+
         console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
 
         try {
@@ -421,7 +436,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 timestamp: formatTime(elapsedTime),
                 aiEvent: data.response.metadata?.task,
                 aiEventDirection: "response",
-                aiEventData: `AI ${data.response.metadata?.task}: ${responseString}`,
+                aiEventData: responseString,
             }]);
             
         } catch (err) {
@@ -434,14 +449,13 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
     // CLIENT SIDE AI RESPONSE TRIGGERS
 
-    const addTranscriptAIAskEvent = (task: ("feedback" | "follow-up" | "next-question" | "rephrase")) => {
+    const addTranscriptAIAskEvent = (task: AIEvent) => {
         setTranscript(t => [...t, {
             timestamp: formatTime(elapsedTime),
             aiEvent: task,
             aiEventDirection: "ask",
         }]);
     }
-
 
 
     const handleGetFeedback = () => {
