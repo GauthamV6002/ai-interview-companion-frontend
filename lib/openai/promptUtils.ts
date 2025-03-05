@@ -42,7 +42,8 @@ const getQuestionFeedbackPrompt = () => {
 
         IMPORTANT: First, ask if the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
         If it was not, respond with the word "none" and nothing else. Do not include quotes.
-        If it was, do the following. 
+        Also, ask yourself is the person is actually finished speaking. If not, also respond with the word "none" and nothing else.
+        If it was a question and they finished speaking, do the following. 
 
 
         If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question using these criteria:

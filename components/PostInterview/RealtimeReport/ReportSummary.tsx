@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { useTranscriptLog } from '@/context/TranscriptLogContext';
-import { ArrowRight, Clock, Download, FileAudio, MessageSquare, MessageSquarePlus, RefreshCw, Timer, TimerOff } from 'lucide-react'
+import { ArrowRight, CheckCircle, Clock, Download, FileAudio, MessageSquare, MessageSquarePlus, RefreshCw, Timer, TimerOff } from 'lucide-react'
 import React from 'react'
 
 type MetricItem = {
@@ -68,12 +68,34 @@ const ReportSummary = (props: Props) => {
         return followUps.length;
     }
 
-    const getNumberOfNextQuestions = () => {
-        const nextQuestions = transcript.filter(item => item.aiEvent === "next-question");
-        return nextQuestions.length;
+    const getNumberOfFeedbacks = () => {
+        const feedbacks = transcript.filter(item => item.aiEvent === "feedback");
+        return feedbacks.length;
     }
 
-    
+    const downloadTranscript = () => {
+        // Convert transcript to JSON string
+        const transcriptJson = JSON.stringify(transcript, null, 2);
+        
+        // Create a Blob with the JSON data
+        const blob = new Blob([transcriptJson], { type: 'application/json' });
+        
+        // Create a URL for the Blob
+        const url = URL.createObjectURL(blob);
+        
+        // Create a temporary anchor element
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `interview-transcript-${new Date().toISOString().split('T')[0]}.json`;
+        
+        // Trigger the download
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <Card className='h-full flex-col flex'>
@@ -106,21 +128,17 @@ const ReportSummary = (props: Props) => {
                     title="AI Feature Usage"
                     barColor="bg-purple-500"
                     metrics={[
+                        { icon: <CheckCircle className="h-4 w-4" />, text: `Feedback Usages: ${getNumberOfFeedbacks()}` },
                         { icon: <RefreshCw className="h-4 w-4" />, text: `Rephrase Usages: ${getNumberOfRephrases()}` },
-                        { icon: <MessageSquarePlus className="h-4 w-4" />, text: `Follow-up Usages: ${getNumberOfFollowUps()}` },
-                        { icon: <ArrowRight className="h-4 w-4" />, text: `Next Question Usages: ${getNumberOfNextQuestions()}` }
+                        { icon: <MessageSquarePlus className="h-4 w-4" />, text: `Follow-up Usages: ${getNumberOfFollowUps()}` }
                     ]}
                 />
             </CardContent>
             <CardFooter>
                 <div className="flex gap-4">
-                    <Button variant="outline" className="flex gap-2">
+                    <Button onClick={downloadTranscript} variant="outline" className="flex gap-2">
                         <Download className="h-4 w-4" />
                         Download Transcript
-                    </Button>
-                    <Button variant="outline" className="flex gap-2">
-                        <FileAudio className="h-4 w-4" />
-                        Download Recording
                     </Button>
                 </div>
             </CardFooter>

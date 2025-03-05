@@ -4,7 +4,7 @@ type TranscriptItem = {
     timestamp: string;
     
     // Human
-    speaker?: string;
+    speaker?: ("interviewer" | "interviewee");
     text?: string;
 
     // Pause Detected

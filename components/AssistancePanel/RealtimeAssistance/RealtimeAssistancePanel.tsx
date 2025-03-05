@@ -8,7 +8,7 @@ import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 import { Separator } from '@/components/ui/separator'
 import { FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
 import { AIEvent } from '@/types/Transcript'
-import { getFollowUpPrompt,getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
+import { getFollowUpPrompt, getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
 
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -47,8 +47,12 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     // A copy of the protocol to be used for the session, so the original is not modified
     const [sessionProtocol, setSessionProtocol] = useState([...protocol]);
     const [selectedQuestion, setSelectedQuestion] = useState(0);
+    // Replace state with ref for immediate access
+    const pauseStartTimeRef = useRef<number | null>(null);
 
-    
+    // Add a ref to track session start time
+    const sessionStartTimeRef = useRef<number | null>(null);
+
     const [isSessionActive, setIsSessionActive] = useState(false);
     const peerConnection = useRef<RTCPeerConnection>(null);
     const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
@@ -59,7 +63,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const [responseInProgress, setResponseInProgress] = useState(false);
     const [responseInProgressId, setResponseInProgressId] = useState<string | null>(null);
 
-    
+
     // Audio recording references
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -84,14 +88,14 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
         recordedChunksRef.current = [];
         recordingStartTimeRef.current = formatTime(elapsedTime);
-        
+
         try {
             // Try to use audio/webm with opus codec for better quality
-            const options = { 
+            const options = {
                 mimeType: 'audio/webm;codecs=opus',
                 audioBitsPerSecond: 128000 // 128 kbps for good quality
             };
-            
+
             // Fallback if the preferred format is not supported
             let mediaRecorder;
             try {
@@ -100,25 +104,25 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 console.warn('audio/webm;codecs=opus not supported, falling back to default format');
                 mediaRecorder = new MediaRecorder(mixedAudioStream);
             }
-            
+
             mediaRecorder.ondataavailable = (event) => {
                 if (event.data.size > 0) {
                     recordedChunksRef.current.push(event.data);
                 }
             };
-            
+
             // Start recording and request data every second
             mediaRecorder.start(1000);
             mediaRecorderRef.current = mediaRecorder;
             setIsRecording(true);
-            
+
             // Add recording started event to transcript
             // setTranscript(t => [...t, {
             //     timestamp: formatTime(elapsedTime),
             //     aiEvent: "recording-started" as any,
             //     aiEventData: `Recording started at ${formatTime(elapsedTime)}`
             // }]);
-            
+
             console.log('Recording started with timeslice of 1000ms');
         } catch (err) {
             console.error('Error starting recording:', err);
@@ -130,21 +134,21 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
             // Store the current time before stopping
             const stopTime = formatTime(elapsedTime);
-            
+
             // Define a callback to run when the recorder stops
             mediaRecorderRef.current.onstop = () => {
                 if (recordedChunksRef.current.length === 0) {
                     console.log('No recorded data available');
                     return;
                 }
-                
+
                 try {
                     // Create a blob from the recorded chunks
                     const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-                    
+
                     // Add the blob to the context
                     addAudioBlob(blob);
-                    
+
                     // Add recording stopped event to transcript
                     // setTranscript(t => [...t, {
                     //     timestamp: stopTime,
@@ -156,13 +160,13 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     //         blobIndex: transcript.filter(item => item.aiEvent === "recording-stopped").length
                     //     })
                     // }]);
-                    
+
                     console.log('Recording saved to context');
                 } catch (err) {
                     console.error('Error saving recording to context:', err);
                 }
             };
-            
+
             // Stop the recorder
             mediaRecorderRef.current.stop();
             setIsRecording(false);
@@ -255,7 +259,10 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
             // Start recording audio
             startRecording();
-            
+
+            // Record the session start time
+            sessionStartTimeRef.current = Date.now();
+
             // Start the timer
             timerRef.current = setInterval(() => {
                 setElapsedTime(prev => prev + 1);
@@ -314,6 +321,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         // }]);
 
         console.log('Session closed and cleaned up');
+
+        // Reset the session start time
+        sessionStartTimeRef.current = null;
     }
 
     function setSessionConfig() {
@@ -380,7 +390,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
     const handleResponseDone = (data: any) => {
 
-        
+
         if (!data.response.output[0]) {
             setResponseInProgress(false);
             setResponseInProgressId(null);
@@ -393,36 +403,36 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
 
         try {
-            
+
             const responseString = data.response.output[0].content[0].text;
             setTimeout(() => { setResponseInProgress(false) }, 100);
 
-            if(!data.response.metadata) {
+            if (!data.response.metadata) {
                 console.log("ERROR: No metadata found in response");
                 return;
             }
-            
+
             switch (data.response.metadata?.task) {
                 case "feedback":
-                    if(responseString.toLowerCase().includes("none")) return; // Someone didn't finish talking
+                    if (responseString.toLowerCase().includes("none")) return; // Someone didn't finish talking
 
                     setModelResponses(prev => [...prev, {
                         task: "feedback",
-                        response: JSON.parse(responseString) as FeedbackResponse, 
+                        response: JSON.parse(responseString) as FeedbackResponse,
                     }]);
                     break;
 
                 case "follow-up":
                     setModelResponses(prev => [...prev, {
                         task: "follow-up",
-                        response: responseString as FollowUpResponse, 
+                        response: responseString as FollowUpResponse,
                     }]);
                     break;
 
                 case "rephrase":
                     setModelResponses(prev => [...prev, {
                         task: "rephrase",
-                        response: responseString as RephraseResponse, 
+                        response: responseString as RephraseResponse,
                     }]);
                     break;
 
@@ -431,14 +441,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     break;
             }
 
-            
-            setTranscript(t => [...t, {
-                timestamp: formatTime(elapsedTime),
-                aiEvent: data.response.metadata?.task,
-                aiEventDirection: "response",
-                aiEventData: responseString,
-            }]);
-            
+            addTranscriptAIResponseEvent(data.response.metadata?.task, responseString);
+
         } catch (err) {
             // Catches edge cases like cancellations due to interuptions
             console.log("ERROR: Parsing model response failed. Recieved:", data.response.output[0].content[0].text);
@@ -446,14 +450,61 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     }
 
+    const addTranscriptAIResponseEvent = (task: AIEvent, responseString: string) => {
+        // Calculate the actual elapsed time since session start
+        const actualElapsedTime = sessionStartTimeRef.current
+            ? Math.floor((Date.now() - sessionStartTimeRef.current) / 1000)
+            : elapsedTime;
+
+        console.log('Adding RESPONSE transcript event at actual time: ', actualElapsedTime);
+        setTranscript(t => [...t, {
+            timestamp: formatTime(actualElapsedTime),
+            aiEvent: task,
+            aiEventDirection: "response",
+            aiEventData: responseString,
+        }]);
+    }
 
     // CLIENT SIDE AI RESPONSE TRIGGERS
 
     const addTranscriptAIAskEvent = (task: AIEvent) => {
+        // Calculate the actual elapsed time since session start
+        const actualElapsedTime = sessionStartTimeRef.current
+            ? Math.floor((Date.now() - sessionStartTimeRef.current) / 1000)
+            : elapsedTime;
+
+        console.log('Adding ASK transcript event at actual time: ', actualElapsedTime);
         setTranscript(t => [...t, {
-            timestamp: formatTime(elapsedTime),
+            timestamp: formatTime(actualElapsedTime),
             aiEvent: task,
             aiEventDirection: "ask",
+        }]);
+    }
+
+    const addTranscriptSpeechEvent = (text: string) => {
+        // Calculate the actual elapsed time since session start
+        const actualElapsedTime = sessionStartTimeRef.current
+            ? Math.floor((Date.now() - sessionStartTimeRef.current) / 1000)
+            : elapsedTime;
+
+        console.log('Adding ASK transcript event at actual time: ', actualElapsedTime);
+        setTranscript(t => [...t, {
+            timestamp: formatTime(actualElapsedTime),
+            text: text,
+            speaker: "interviewee", // TODO: Change to speaker
+        }]);
+    }
+
+    const addTranscriptPauseEvent = (duration: number) => {
+        // Calculate the actual elapsed time since session start
+        const actualElapsedTime = sessionStartTimeRef.current
+            ? Math.floor((Date.now() - sessionStartTimeRef.current) / 1000)
+            : elapsedTime;
+
+        console.log('Adding PAUSE transcript event at actual time: ', actualElapsedTime, 'with duration: ', duration);
+        setTranscript(t => [...t, {
+            timestamp: formatTime(actualElapsedTime),
+            pauseDuration: duration,
         }]);
     }
 
@@ -461,20 +512,20 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const handleGetFeedback = () => {
         getTaskResponse(getQuestionFeedbackPrompt(), "feedback");
         console.log("(AI TASK: feedback) sent");
-        addTranscriptAIAskEvent("feedback");
+        // addTranscriptAIAskEvent("feedback");
     }
 
     const handleGetFollowUp = () => {
         getTaskResponse(getFollowUpPrompt(), "follow-up");
         console.log("(AI TASK: follow-up) sent");
-        addTranscriptAIAskEvent("follow-up");
+        // addTranscriptAIAskEvent("follow-up");
     }
 
     const handleRephrase = (question_id: number, question: string) => {
         getTaskResponse(getRephrasePrompt(question), "rephrase");
         console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
         setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
-        addTranscriptAIAskEvent("rephrase");
+        // addTranscriptAIAskEvent("rephrase");
     }
 
     // Attach event listeners to the data channel when a new one is created
@@ -491,6 +542,35 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
                 if (data.type === "input_audio_buffer.committed") {
                     if (configurationMode === "responsive" || configurationMode === "full") handleGetFeedback();
+                }
+
+                if (data.type === "conversation.item.input_audio_transcription.completed") {
+                    console.log("TRANSCRIPTION DONE", data);
+                    addTranscriptSpeechEvent(data.transcript);
+                }
+
+
+                if (data.type === "input_audio_buffer.speech_started") {
+                    // STOP THE PAUSE TIMER & ADD PAUSE DURATION AS A NEW TRANSCRIPT EVENT
+                    console.log('PAUSE START TIME', pauseStartTimeRef.current);
+                    if (pauseStartTimeRef.current !== null) {
+                        const pauseDuration = Date.now() - pauseStartTimeRef.current;
+                        const pauseDurationInSeconds = Math.round(pauseDuration / 1000);
+                        console.log('PAUSE DURATION', pauseDuration, 'ms,', pauseDurationInSeconds, 'seconds');
+                        // Only add pause event if the pause was significant (e.g., more than 0.5 seconds)
+                        if (pauseDuration > 500) {
+                            addTranscriptPauseEvent(pauseDuration);
+                        }
+                        // Reset the pause timer
+                        pauseStartTimeRef.current = null;
+                    }
+                }
+
+                if (data.type === "input_audio_buffer.speech_stopped") {
+                    // START THE PAUSE TIMER
+                    const currentTime = Date.now();
+                    pauseStartTimeRef.current = currentTime;
+                    console.log('PAUSE START TIME SET TO', currentTime);
                 }
 
                 console.log("EVENT", data);
@@ -528,17 +608,17 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             }
             <CardContent className='h-full flex flex-col gap-2'>
 
-                {(configurationMode !== "none" && configurationMode !== "post") && <ResponsePanel 
-                responseInProgress={responseInProgress}
-                modelResponses={modelResponses}
+                {(configurationMode !== "none" && configurationMode !== "post") && <ResponsePanel
+                    responseInProgress={responseInProgress}
+                    modelResponses={modelResponses}
                 />}
-                
-                {(configurationMode !== "none" && configurationMode !== "post") && <ControlsPanel 
-                    configurationMode={configurationMode} 
-                    isSessionActive={isSessionActive} 
-                    responseInProgress={responseInProgress} 
-                    handleGetFollowUp={handleGetFollowUp}  
-                    stopSession={stopSession} 
+
+                {(configurationMode !== "none" && configurationMode !== "post") && <ControlsPanel
+                    configurationMode={configurationMode}
+                    isSessionActive={isSessionActive}
+                    responseInProgress={responseInProgress}
+                    handleGetFollowUp={handleGetFollowUp}
+                    stopSession={stopSession}
                     startSession={startSession}
                     elapsedTime={formatTime(elapsedTime)}
                     onShowInstructions={onShowInstructions}

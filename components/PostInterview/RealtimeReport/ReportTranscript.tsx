@@ -10,12 +10,12 @@ type Props = {}
 const TRANSCRIPT_SAMPLE: Transcript = [
     {
         "timestamp": "00:00:05",
-        "speaker": "Interviewer",
+        "speaker": "interviewer",
         "text": "Welcome, John. Can you start by telling us a little about yourself?"
     },
     {
         "timestamp": "00:00:12",
-        "speaker": "Interviewee",
+        "speaker": "interviewee",
         "text": "Sure! My name is John, and I have a background in software engineering. I've worked on various AI projects, focusing on machine learning and data optimization."
     },
     {
@@ -24,22 +24,22 @@ const TRANSCRIPT_SAMPLE: Transcript = [
     },
     {
         "timestamp": "00:00:30",
-        "speaker": "Interviwer",
+        "speaker": "interviewer",
         "text": "That sounds interesting. Can you describe a recent project you've worked on?"
     },
     {
         "timestamp": "00:00:40",
-        "speaker": "Interviewee",
+        "speaker": "interviewee",
         "text": "Absolutely. Recently, I developed a model selection system that routes prompts to the most cost-effective LLMs based on complexity and domain."
     },
     {
         "timestamp": "00:01:05",
-        "speaker": "Interviwer",
+        "speaker": "interviewer",
         "text": "What challenges did you face while working on that project?"
     },
     {
         "timestamp": "00:01:05",
-        "speaker": "Interviwer",
+        "speaker": "interviewer",
         "text": "What challenges did you face while working on that project?"
     },
     {
@@ -49,32 +49,32 @@ const TRANSCRIPT_SAMPLE: Transcript = [
     },
     {
         "timestamp": "00:01:12",
-        "speaker": "Interviewee",
+        "speaker": "interviewee",
         "text": "One of the biggest challenges was optimizing latency while ensuring high accuracy. I tackled this by implementing a lightweight classifier that assigns scores to different models before routing the prompt."
     },
     {
         "timestamp": "00:01:40",
-        "speaker": "Interviwer",
+        "speaker": "interviewer",
         "text": "That's impressive. How did you validate the effectiveness of your system?"
     },
     {
         "timestamp": "00:01:50",
-        "speaker": "Interviewee",
+        "speaker": "interviewee",
         "text": "I conducted extensive A/B testing and benchmarked results against existing solutions. The system improved cost efficiency by 30% while maintaining response quality."
     },
     {
         "timestamp": "00:02:10",
-        "speaker": "Interviwer",
+        "speaker": "interviewer",
         "text": "Great work, John. One last question—where do you see AI heading in the next five years?"
     },
     {
         "timestamp": "00:02:20",
-        "speaker": "Interviewee",
+        "speaker": "interviewee",
         "text": "I believe AI will become more personalized and efficient. With advancements in multi-modal models and optimization techniques, we'll see AI becoming more integrated into daily workflows."
     },
     {
         "timestamp": "00:02:40",
-        "speaker": "Interviwer",
+        "speaker": "interviewer",
         "text": "Thank you, John. It was great speaking with you today."
     },
     {
@@ -83,7 +83,7 @@ const TRANSCRIPT_SAMPLE: Transcript = [
     },
     {
         "timestamp": "00:02:45",
-        "speaker": "Interviewee",
+        "speaker": "interviewee",
         "text": "Likewise, Jane. Thanks for having me!"
     }
 ]
@@ -149,7 +149,8 @@ const TranscriptMessage = ({ item }: { item: TranscriptItem }) => {
         //     return <span className="text-sm">Interaction</span>
         // }
 
-        return <span className="text-sm font-medium text-blue-400"> {item.speaker}</span>
+        // TODO: Add correct speaker
+        return <span className="text-sm font-medium text-blue-400"> Speech </span>
     }
 
     const getItemIcon = () => {

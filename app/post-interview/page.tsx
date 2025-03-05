@@ -16,7 +16,7 @@ const page = (props: Props) => {
             {
                 transcriptionProgress < 100 ?
                 <ProgressPanel transcriptionProgress={transcriptionProgress} /> :
-                <div className="container mx-auto py-8 space-y-8">
+                <div className="container mx-auto">
                     <RealtimeReportPanel />
                     <AudioRecordingsPanel />
                 </div>
