@@ -3,7 +3,7 @@ const getSystemPrompt = (protocolString: string) => {
     return (
     `You are an expert qualitative researcher with extensive experience in conducting and observing semi-structured interviews. 
     Your task is to monitor the interview to ensure it progresses smoothly and naturally while helping to elicit rich, in-depth perspectives from the interviewee. 
-    You'll need to provide feedback to the interviewer based on their performance.
+    You'll need to provide feedback and assistance to the interviewer based on their performance and requests.
 
     For all the tasks you help with, ensure to refer to the following interview protocol, which is used by the interviewer to conduct the interview.
     It contains a rough outline of how the interview should go, so the interviewer should stick to it roughly, but may need to adapt based on the context.
@@ -49,21 +49,17 @@ const getQuestionFeedbackPrompt = () => {
         If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question using these criteria:
         1. Open-ended/Closed-ended? | Leading? | Aligning with protocol?
         2. Clearly phrased? Avoids multiple questions in one?
-        3.Builds on prior responses? Keeps the conversation natural? 
-        4. Shows attentiveness by connecting to the interviewee's answers?
-
 
         If the last bit of input was an interviewee responding to the last question asked by the interviewer, evaluate the response using these criteria:
         1. Depth/Richness: Detailed insights or surface-level? Any nuances to explore?
-        2. Relevance: Aligned with research questions and context? Provides valuable information?
-        3. Clarity/Coherence: Clearly structured? Any ambiguous points needing clarification?
-        4. Engagement/Openness: Engaged and open? Needs encouragement to elaborate or feel comfortable?
+        2. Relevance: Aligned with research questions and context?
+        3. Clarity: Any ambiguous points needing clarification?
 
         Don't be too nice. If the question or answer is bad, say so.
 
         Generate feedback in this JSON format: 
         {
-            "evaluation": "good" | "neutral" | "bad"; // Was the question good, neutral, or bad?
+            "evaluation": "good" | "bad"; // Was the question good, or bad?
             "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.
             "tip": string; // Actionable tip, to improve the question or answer, within 15 words
             "feedbackFor": "interviewer" | "interviewee"; // Whether the feedback is for the interviewer or the interviewee, based on whether a question was asked or answered
