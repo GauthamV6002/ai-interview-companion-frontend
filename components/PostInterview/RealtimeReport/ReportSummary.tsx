@@ -119,7 +119,7 @@ const ReportSummary = (props: Props) => {
                     title="Pause Analysis"
                     barColor="bg-green-500"
                     metrics={[
-                        { icon: <Timer className="h-4 w-4" />, text: `Average Pause Duration: ${getAveragePauseDuration()}s` },
+                        { icon: <Timer className="h-4 w-4" />, text: `Average Pause Duration: ${getAveragePauseDuration()} ms` },
                         { icon: <TimerOff className="h-4 w-4" />, text: `Number of Pauses Longer than 3 seconds: ${getNumberOfPausesLongerThan3Seconds()}` }
                     ]}
                 />
