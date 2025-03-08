@@ -43,26 +43,33 @@ const getQuestionFeedbackPrompt = () => {
         IMPORTANT: First, ask if the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
         If it was not, respond with the word "none" and nothing else. Do not include quotes.
         Also, ask yourself is the person is actually finished speaking. If not, also respond with the word "none" and nothing else.
-        If it was a question and they finished speaking, do the following. 
-
+        If they finished speaking, do the following. 
 
         If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question using these criteria:
         1. Open-ended/Closed-ended? | Leading? | Aligning with protocol?
         2. Clearly phrased? Avoids multiple questions in one?
 
-        If the last bit of input was an interviewee responding to the last question asked by the interviewer, evaluate the response using these criteria:
-        1. Depth/Richness: Detailed insights or surface-level? Any nuances to explore?
-        2. Relevance: Aligned with research questions and context?
-        3. Clarity: Any ambiguous points needing clarification?
-
-        Don't be too nice. If the question or answer is bad, say so.
+        Don't be too nice.
 
         Generate feedback in this JSON format: 
         {
-            "evaluation": "good" | "bad"; // Was the question good, or bad?
+            "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found  
+            "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.  
+            "tip": string; // Actionable tip to improve the question within 15 words  
+            "feedbackFor": "interviewer";  
+        }
+
+        If the last bit of input was an interviewee responding to the last question asked by the interviewer, evaluate the response using these criteria:
+        1. Relevance: Related to research questions and context?
+        2. Clarity: Any ambiguous points needing clarification?
+        3. Richness: Any nuances to explore? Any interesting information to probe?
+
+        Generate feedback in this JSON format: 
+        {
+            "evaluation": "good" | "warning" | "probing"; // Was the answer good, having relavance or clarity issues, or worth exploring?
             "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.
-            "tip": string; // Actionable tip, to improve the question or answer, within 15 words
-            "feedbackFor": "interviewer" | "interviewee"; // Whether the feedback is for the interviewer or the interviewee, based on whether a question was asked or answered
+            "tip": string; // Actionable tip towards answer with issues or worth exploring, within 15 words
+            "feedbackFor": "interviewee";
         }
          
          Deliver only the final JSON response. Do not include any comments in the JSON response. Ensure it can be parsed as valid JSON.",

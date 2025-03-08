@@ -14,15 +14,15 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
 
     const getEvalColoredDot = (evaluation: string) => {
         if (evaluation === "good") return <div className='size-[6px] mt-1 bg-green-500 rounded-full'></div>;
-        if (evaluation === "neutral") return <div className='size-[6px] mt-1 bg-yellow-500 rounded-full'></div>;
-        if (evaluation === "bad") return <div className='size-[6px] mt-1 bg-red-500 rounded-full'></div>;
+        if (evaluation === "warning") return <div className='size-[6px] mt-1 bg-yellow-500 rounded-full'></div>;
+        if (evaluation === "probing") return <div className='size-[6px] mt-1 bg-blue-500 rounded-full'></div>;
         return <div className='size-[6px] mt-1 bg-gray-500 rounded-full'></div>;
     }
 
     const getEvalColor = (evaluation: string) => {
         if (evaluation === "good") return "lightgreen";
-        if (evaluation === "neutral") return "goldenrod";
-        if (evaluation === "bad") return "red";
+        if (evaluation === "warning") return "goldenrod";
+        if (evaluation === "probing") return "blue";
         return "lightgray";
     }
 
@@ -38,7 +38,7 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
 
             <div className='flex flex-col justify-center gap-2 ml-2'>
                 {/* <p className='text-[1.1rem]'>Tip: {feedback.tip}</p> */}
-                {feedback.evaluation === "bad" && <p className='text-[1.1rem]'>Tip: {feedback.tip}</p>}
+                {(feedback.evaluation === "warning" || feedback.evaluation === "probing") && (<p className='text-[1.1rem]'>Tip: {feedback.tip}</p>)}
                 <div className='flex gap-2 items-center justify-start'>
                     <div style={{color: getEvalColor(feedback.evaluation)}} className='flex items-center justify-center gap-1'>{getEvalColoredDot(feedback.evaluation)} {feedback.evaluation.charAt(0).toUpperCase() + feedback.evaluation.slice(1)}</div>
                     <p>|</p>
