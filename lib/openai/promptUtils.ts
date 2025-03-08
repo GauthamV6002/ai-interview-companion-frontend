@@ -66,7 +66,7 @@ const getQuestionFeedbackPrompt = () => {
 
         Generate feedback in this JSON format: 
         {
-            "evaluation": "good" | "warning" | "probing"; // Was the answer good, having relavance or clarity issues, or worth exploring?
+            "evaluation": "warning" | "probing" | "good"; // Was the answer having relavance or clarity issues, worth exploring, or no action needed?
             "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.
             "tip": string; // Actionable tip towards answer with issues or worth exploring, within 15 words
             "feedbackFor": "interviewee";

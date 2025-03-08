@@ -38,12 +38,12 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
 
             <div className='flex flex-col justify-center gap-2 ml-2'>
                 {/* <p className='text-[1.1rem]'>Tip: {feedback.tip}</p> */}
-                {(feedback.evaluation === "warning" || feedback.evaluation === "probing") && (<p className='text-[1.1rem]'>Tip: {feedback.tip}</p>)}
                 <div className='flex gap-2 items-center justify-start'>
                     <div style={{color: getEvalColor(feedback.evaluation)}} className='flex items-center justify-center gap-1'>{getEvalColoredDot(feedback.evaluation)} {feedback.evaluation.charAt(0).toUpperCase() + feedback.evaluation.slice(1)}</div>
                     <p>|</p>
                     <p className=''>{feedback.keywords}</p>
                 </div>
+                {(feedback.evaluation === "probing" || feedback.evaluation === "warning") && (<p className='text-[1.1rem]'>Tip: {feedback.tip}</p>)}
             </div>
         </div>
     )
