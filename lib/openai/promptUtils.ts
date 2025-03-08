@@ -5,7 +5,7 @@ const getSystemPrompt = (protocolString: string) => {
     Your task is to monitor the interview to ensure it progresses smoothly and naturally while helping to elicit rich, in-depth perspectives from the interviewee. 
     You'll need to provide feedback and assistance to the interviewer based on their performance and requests.
 
-    For all the tasks you help with, ensure to refer to the following interview protocol, which is used by the interviewer to conduct the interview.
+    For all the tasks you help with, ensure to refer to the following interview protocol for the overall research objective, which is used by the interviewer to conduct the interview.
     It contains a rough outline of how the interview should go, so the interviewer should stick to it roughly, but may need to adapt based on the context.
 
     Review it here, in JSON format: ${protocolString}`)
@@ -55,20 +55,20 @@ const getQuestionFeedbackPrompt = () => {
         {
             "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found  
             "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.  
-            "tip": string; // Actionable tip to improve the question within 15 words  
+            "tip": string; // Actionable tip to improve the question within 12 words  
             "feedbackFor": "interviewer";  
         }
 
         If the last bit of input was an interviewee responding to the last question asked by the interviewer, evaluate the response using these criteria:
         1. Relevance: Related to research questions and context?
         2. Clarity: Any ambiguous points needing clarification?
-        3. Richness: Any nuances to explore? Any interesting information to probe?
+        3. Richness: Any nuances or interesting inforamtion related to the research objectives to explore?
 
         Generate feedback in this JSON format: 
         {
-            "evaluation": "warning" | "probing" | "good"; // Was the answer having relavance or clarity issues, worth exploring, or no action needed?
+            "evaluation": "warning" | "probing" | "good"; // For answers: "warning" if the answer having relavance or clarity issues, "probing" if worth exploring, "good" for no action needed.
             "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.
-            "tip": string; // Actionable tip towards answer with issues or worth exploring, within 15 words
+            "tip": string; // Actionable tip to handle the answer with issue or worth exploring, within 12 words
             "feedbackFor": "interviewee";
         }
          

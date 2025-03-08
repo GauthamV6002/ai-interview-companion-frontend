@@ -22,7 +22,7 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
     const getEvalColor = (evaluation: string) => {
         if (evaluation === "good") return "lightgreen";
         if (evaluation === "warning") return "goldenrod";
-        if (evaluation === "probing") return "blue";
+        if (evaluation === "probing") return "text-blue-400";
         return "lightgray";
     }
 
