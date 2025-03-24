@@ -100,7 +100,7 @@ export default function VideoChat({
                     <div className="flex items-center gap-1">
                         <h3>Room ID: {roomId}</h3>
                         {/* TODO: Change localhost url to prod url */}
-                        <Copy size={15} className="hover:scale-125 transition-all cursor-pointer" color="white" onClick={() => navigator.clipboard.writeText(`http://localhost:3000/room/${roomId}`)}/>
+                        <Copy size={15} className="hover:scale-125 transition-all cursor-pointer" color="white" onClick={() => navigator.clipboard.writeText(`https://ai-interview-companion.vercel.app/room/${roomId}`)}/>
                     </div>
                     <div className="flex gap-2 items-center">
                         { peerJoined ? <div className="size-2 bg-green-500 rounded-full"></div> : <div className="size-2 bg-yellow-500 rounded-full"></div> }
