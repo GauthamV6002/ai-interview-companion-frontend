@@ -35,19 +35,20 @@ const getSystemPrompt = (protocolString: string) => {
 }
 
 
-const getQuestionFeedbackPrompt = () => {
+const getAIFeedbackPrompt = () => {
     return (
         `
         **This is the "feedback" prompt.**
 
-        IMPORTANT: First, ask if the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
-        If it was not, respond with the word "none" and nothing else. Do not include quotes.
-        Also, ask yourself is the person is actually finished speaking. If not, also respond with the word "none" and nothing else.
-        If they finished speaking, do the following. 
+        IMPORTANT:
+        Never include quotes.
+        When receiving an input, ask yourself if the person has finished speaking. If not, respond only with the word "none" and nothing else.
+        If the person has finished speaking, ask yourself if the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
+        If it was neither, respond only with the word "none" and nothing else. 
 
-        If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question using these criteria:
-        1. Open-ended/Closed-ended? | Leading? | Aligning with protocol?
-        2. Clearly phrased? Avoids multiple questions in one?
+        If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
+        1. Closed-ended? | Leading? | Not aligning with protocol?
+        2. Not clearly phrased? Multiple questions in one?
 
         Don't be too nice.
 
@@ -77,7 +78,7 @@ const getQuestionFeedbackPrompt = () => {
 }
 
 
-const getFollowUpPrompt = () => {
+const getNextStepPrompt = () => {
     return (
         `Generate a follow-up question that deepens the conversation, based on the last question asked or answered.
 
@@ -94,7 +95,7 @@ const getFollowUpPrompt = () => {
         `).replace("\t", "")
 }
 
-const getRephrasePrompt = (questionToRephrase: string) => {
+const getEvaluationPrompt = (questionToRephrase: string) => {
     return (
         `
         Rephrase the provided question while ensuring natural flow and alignment with research goals. 
@@ -114,67 +115,22 @@ const getRephrasePrompt = (questionToRephrase: string) => {
 
 export {
     getSystemPrompt,
-    getQuestionFeedbackPrompt,
-    getFollowUpPrompt,
-    getRephrasePrompt,
+    getAIFeedbackPrompt,
+    getNextStepPrompt,
+    getEvaluationPrompt,
 }
 
 /*
-def generate_ai_response(mode, task, interview_protocol, **kwargs):
-    client = OpenAI()
-    
-    system_message = f"""
-    
-    """
-    
-    prompts = {
-        "analyze_interviewer": "
-
-        Evaluate interviewer's last question using these criteria:
-        1. Open-ended/Closed-ended? | Leading? | Aligning with protocol?
-        2. Clearly phrased? Avoids multiple questions in one?
-        3.Builds on prior responses? Keeps the conversation natural? 
-        4. Shows attentiveness by connecting to the interviewee’s answers?
-
-        Don't be too nice. If the question is bad, say so.
-
-         Generate feedback in this JSON format: 
-         {
-            "evaluation": "good" | "neutral" | "bad"; // Was the question good, neutral, or bad?
-            "statement": string; // 2-3 keywords summarizing the judgment, comma-separated
-            "tip": string; // Actionable tip, if needed, within 15 words
-         }
-         
-         Deliver only the final JSON response. Do not include any comments in the JSON response. Ensure it can be parsed as valid JSON.",
-
-        "analyze_interviewee": "Evaluate interviewee's response using these criteria:
-         1. Depth/Richness: Detailed insights or surface-level? Any nuances to explore?
-         2. Relevance: Aligned with research questions and context? Provides valuable information?
-         3. Clarity/Coherence: Clearly structured? Any ambiguous points needing clarification?
-         4. Engagement/Openness: Engaged and open? Needs encouragement to elaborate or feel comfortable?
-         Generate feedback in this format: <feedback><evaluation>[Good/Neutral/Bad]</evaluation><statement>[2–3 keywords summarizing the judgment]</statement><tip>[Actionable tip, if needed, within 15 words]</tip></feedback>
-         Example: Neutral: “Response lacked depth. Ask, ‘Can you share an example to illustrate that?’”
-         Deliver only the final formatted feedback—no extra commentary.",
-        
-        "rephrase_question": "Rephrase the provided question while ensuring natural flow and alignment with research goals. Question to be rephrased: {target_question}. Ensure the rephrased question:
-         1. Flows naturally with the previous conversation 
-         2. Engages interviewee using a conversational, respectful tone.
-         3. Demonstrates active listening with references interviewee’s answers when relevant.
-         4. Is clear and relevant.
-         5. Prompts detailed insights or concrete examples.
-         6. within 25 words. Output format: <rephrased_question>[Rephrased question]</rephrased_question>
-         Example: ‘Earlier, you mentioned working harder when stressed. Can you share a specific time this happened?’
-         Deliver only the final rephrased question—no extra commentary.",
-        
-        "generate_follow_up": "Generate a follow-up question that deepens the conversation.
-         Esure the generated follow-up question: 1. Acknowledges interviewee’s response and extends discussion.
-         2. Prompts reflection, personal experiences, or specific examples.
-         3. Uses an open-ended, empathetic tone.
-         4. Precise and aligned with interview protocol.
-         5. Does not repeat or slightly rephrase previous question.
-         6. Stays within 25 words.
-         Output format: <follow_up_question>[Follow-up question]</follow_up_question>
-         Example: ‘You mentioned feeling more motivated under stress. Can you describe a time when that led to a significant outcome?’
-         Deliver only the final follow-up question—no extra commentary."
-    }
+Function 1: Assess and Provide Feedback on the Interviewer’s Question
+Prompt:
+"Analyze the following question asked by the interviewer in the context of a semi-structured research interview: '[Insert Question]'. Provide open-ended feedback on its effectiveness, highlighting strengths and areas for improvement. Explain the rationale behind your feedback to help the interviewer refine their questioning skills. Evaluate factors such as clarity, relevance to the research objectives, ability to elicit rich responses, and avoidance of leading or biased phrasing."
+Function 2: Suggest a Suitable Next Response
+Prompt:
+"Based on the current state of the interview, including the previous questions and responses, suggest an appropriate next step for the interviewer. This could be the next main question, a follow-up question, or another response type (e.g., probing for detail or shifting topics). Provide a clear suggestion and explain the reasoning behind it, considering the conversation’s flow and the research goals."
+Function 1: Assess and Provide Feedback on the Interviewer’s Question
+Prompt:
+"Evaluate the following question asked by the interviewer in a semi-structured research interview: '[Insert Question]'. Provide concise, closed-ended feedback indicating its effectiveness. Use a simple rating (e.g., 'Effective' or 'Needs Improvement') or a brief statement (e.g., 'Well-phrased' or 'Too broad'). Do not include rationale or detailed explanation."
+Function 2: Suggest a Suitable Next Response
+Prompt:
+"Based on the current state of the interview, suggest a straightforward next response for the interviewer. This could be the next main question, a follow-up question, or another type of response. Provide the suggestion without any explanation or reasoning."
 */

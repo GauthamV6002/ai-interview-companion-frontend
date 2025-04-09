@@ -96,14 +96,14 @@ const page = (props: Props) => {
 					<Input type='number' onChange={(e) => setParticipantID(Number(e.target.value))} placeholder='Participant ID'></Input>
 					<Select onValueChange={(val) => setConfigurationMode(val as ConfigurationMode)}>
 						<SelectTrigger className="">
-							<SelectValue placeholder="AI Assistance Configuration" />
+							<SelectValue placeholder="AI Assistance Mode" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="responsive">1. Responsive Assistance</SelectItem>
-							<SelectItem value="interactive">2. Interactive Assistance</SelectItem>
-							<SelectItem value="none">3. No AI Assistance</SelectItem>
+							<SelectItem value="responsive">A. AI-Initiated Mode</SelectItem>
+							<SelectItem value="interactive">B. User-Initiated Mode</SelectItem>
+							{/* <SelectItem value="none">3. No AI Assistance</SelectItem>
 							<SelectItem value="full">4. Full AI Assistance (Not Implemented)</SelectItem>
-							<SelectItem value="post">5. Post Interview Assistance (Not Implemented)</SelectItem>
+							<SelectItem value="post">5. Post Interview Assistance (Not Implemented)</SelectItem> */}
 						</SelectContent>
 					</Select>
 					
