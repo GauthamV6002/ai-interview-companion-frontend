@@ -57,13 +57,13 @@ const getNextStepPrompt = () => {
         3. Does not repeat or slightly rephrase previous question.
 
         The suggestion for next step could be the next main question, a follow-up question, or another response type.
-        Provide a clear open-ended explanation about the reasoning behind the suggestion. The explanation should be concise and within 25 words. Do not include any ready-to-use responses.
+        Provide a clear open-ended explanation about the reasoning behind the suggestion. The explanation should be concise and within 15 words. Do not include any ready-to-use responses.
 
 
         Generate feedback in this JSON format: 
         {
             "suggestion": "main question" | "follow-up" | "other"; //
-            "explanation": string; // An open-ended explanation about the suggestion within 25 words.
+            "explanation": string; // An open-ended explanation about the suggestion within 15 words.
         }         
         `).replace("\t", "")
 }
@@ -81,7 +81,7 @@ const getEvaluationPrompt = () => {
         Generate feedback in this JSON format: 
         {
             "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found.
-            "explanation": string; // An open-ended explanation about the evaluation within 25 words.
+            "explanation": string; // An open-ended explanation about the evaluation within 15 words.
         }`).replace("\t", "")
 }
 

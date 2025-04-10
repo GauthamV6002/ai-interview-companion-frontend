@@ -83,7 +83,8 @@ const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: Eva
             {/* Evaluation and Explanation Section */}
             <div className='flex flex-col justify-center gap-2 ml-2'>
                 <div className='flex gap-2 items-center justify-start'>
-                    <div style={{color: getEvalColor(evaluation.evaluation)}} className='flex items-center justify-center gap-1'>{getEvalColoredDot(evaluation.evaluation)} {evaluation.evaluation.charAt(0).toUpperCase() + evaluation.evaluation.slice(1)}</div>
+                    {/* <div style={{ color: getEvalColor(evaluation.evaluation) }} className='flex items-center justify-center gap-1'>{getEvalColoredDot(evaluation.evaluation)}{evaluation.evaluation.charAt(0).toUpperCase() + evaluation.evaluation.slice(1)}</div> */}
+                    <div style={{ color: getEvalColor(evaluation.evaluation) }} className='flex items-center justify-center gap-1'>{getEvalColoredDot(evaluation.evaluation)}{evaluation.evaluation}</div>
                     <p>|</p>
                     <p className=''>{evaluation.explanation}</p>
                 </div>
