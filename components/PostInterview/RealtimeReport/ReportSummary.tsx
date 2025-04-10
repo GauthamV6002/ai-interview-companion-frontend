@@ -58,13 +58,13 @@ const ReportSummary = (props: Props) => {
         return pauses.length;
     }
 
-    const getNumberOfRephrases = () => {
-        const rephrases = transcript.filter(item => item.aiEvent === "rephrase");
+    const getNumberOfEvaluations = () => {
+        const rephrases = transcript.filter(item => item.aiEvent === "question-evaluation");
         return rephrases.length;
     }
 
-    const getNumberOfFollowUps = () => {
-        const followUps = transcript.filter(item => item.aiEvent === "follow-up");
+    const getNumberOfSuggestions = () => {
+        const followUps = transcript.filter(item => item.aiEvent === "next-step-suggestion");
         return followUps.length;
     }
 
