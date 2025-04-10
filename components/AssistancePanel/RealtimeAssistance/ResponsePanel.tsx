@@ -43,9 +43,9 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
                             {getEvalColoredDot(feedback.evaluation)} {feedback.evaluation.charAt(0).toUpperCase() + feedback.evaluation.slice(1)}
                         </div>
                         <p>|</p>
-                        <p className=''>{feedback.feedback}</p>
                     </div>
                 )}
+                <p className=''>{feedback.feedback}</p>
             </div>
         </div>
     );
