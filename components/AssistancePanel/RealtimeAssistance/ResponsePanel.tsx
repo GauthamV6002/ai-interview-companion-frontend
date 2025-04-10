@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ModelResponse, FeedbackResponse, FollowUpResponse, RephraseResponse } from '@/types/TaskResponse';
+import { ModelResponse, FeedbackResponse, EvaluationResponse, SuggestResponse } from '@/types/TaskResponse';
 import { ChevronLeft, ChevronRight, MessageSquarePlus, RefreshCw } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 
@@ -49,7 +49,7 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
     )
 }
 
-const FollowUpDisplay = ({ followup, responseInProgress }: { followup: FollowUpResponse, responseInProgress: boolean }) => {
+const FollowUpDisplay = ({ followup, responseInProgress }: { followup: EvaluationResponse, responseInProgress: boolean }) => {
     return (
         <div className='flex gap-2'>
             <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
@@ -66,7 +66,7 @@ const FollowUpDisplay = ({ followup, responseInProgress }: { followup: FollowUpR
         </div>
     )
 }
-const RephraseDisplay = ({ rephrase, responseInProgress }: { rephrase: RephraseResponse, responseInProgress: boolean }) => {
+const RephraseDisplay = ({ rephrase, responseInProgress }: { rephrase: SuggestResponse, responseInProgress: boolean }) => {
     return (
         <div className='flex gap-2'>
             <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
@@ -107,10 +107,10 @@ const ResponsePanel = ({ responseInProgress, modelResponses }: Props) => {
         switch (currentResponse?.task) {
             case 'feedback':
                 return <FeedbackDisplay feedback={currentResponse.response as FeedbackResponse} responseInProgress={responseInProgress} />;
-            case 'follow-up':
-                return <FollowUpDisplay followup={currentResponse.response as FollowUpResponse} responseInProgress={responseInProgress} />;
-            case 'rephrase':
-                return <RephraseDisplay rephrase={currentResponse.response as RephraseResponse} responseInProgress={responseInProgress} />;
+            case 'evaluation':
+                return <EvaluationDisplay evaluation={currentResponse.response as EvaluationResponse} responseInProgress={responseInProgress} />;
+            case 'suggestion':
+                return <SuggestDisplay suggest={currentResponse.response as SuggestResponse} responseInProgress={responseInProgress} />;
             default:
                 return (
                     <div className='flex gap-2'>
@@ -126,9 +126,9 @@ const ResponsePanel = ({ responseInProgress, modelResponses }: Props) => {
     //get color based on modelResponseType function
     const getColor = (modelResponseType: string) => {
         if (modelResponseType === "feedback") return "lightgreen";
-        if (modelResponseType === "follow-up") return "lightblue";
-        if (modelResponseType === "rephrase") return "orange";
-        if (modelResponseType === "next-question") return "coral";
+        if (modelResponseType === "evaluation") return "lightblue";
+        if (modelResponseType === "suggestion") return "orange";
+        // if (modelResponseType === "next-question") return "coral";
         return "lightgray";
     }
 
