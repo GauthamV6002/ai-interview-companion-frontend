@@ -61,12 +61,13 @@ const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: Eva
             <div className='w-[1px] bg-white/40'></div>
 
             <div className='flex flex-col justify-center gap-2 ml-2'>
-                <p className='text-[1.1rem]'>{evaluation}</p>
+                <p className='text-[1.1rem]'>{evaluation.evaluation}</p>
+                <p className='text-[1.1rem]'>{evaluation.explanation}</p>
             </div>
         </div>
     )
 }
-const SuggestDisplay = ({ suggest, responseInProgress }: { suggest: SuggestResponse, responseInProgress: boolean }) => {
+const SuggestDisplay = ({ suggestion, responseInProgress }: { suggestion: SuggestResponse, responseInProgress: boolean }) => {
     return (
         <div className='flex gap-2'>
             <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
@@ -78,7 +79,8 @@ const SuggestDisplay = ({ suggest, responseInProgress }: { suggest: SuggestRespo
             <div className='w-[1px] bg-white/40'></div>
 
             <div className='flex flex-col justify-center gap-2 ml-2'>
-                <p className='text-[1.1rem]'>{suggest}</p>
+                <p className='text-[1.1rem]'>{suggestion.suggestion}</p>
+                <p className='text-[1.1rem]'>{suggestion.explanation}</p>
             </div>
         </div>
     )
