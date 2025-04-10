@@ -29,7 +29,7 @@ const getAIFeedbackPrompt = () => {
         Generate feedback in this JSON format: 
         {
             "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found  
-            "feedback": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.  
+            "feedback": string; // If "good", 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence. If "warning", a ready-to-use rephrased question within 15 words.
             "feedbackFor": "interviewer";  
         }
 
@@ -49,16 +49,14 @@ const getAIFeedbackPrompt = () => {
 
 const getNextStepPrompt = () => {
     return (
-        `Based on the current interview conversation, including the previous questions and responses, suggest an appropriate next step for the interviewer.
+        `According to the interviewee's response to the last question asked by the interviewer, suggest an appropriate next step for the interviewer. This could be the next main question, a follow-up question, or another type of response.
+
+        In additon to the suggested next step, provide a concise explanation about the suggestion within 15 words.Do not provide a ready-to-use response directly to the interviewer.
         
-        Your suggestion should consider the following criteria: 
-        1. Acknowledges interviewee’s response and extends discussion.
-        2. Align with the conversation flow, interview protocol, and the research goal.
-        3. Does not repeat or slightly rephrase previous question.
-
-        The suggestion for next step could be the next main question, a follow-up question, or another response type.
-        Provide a clear open-ended explanation about the reasoning behind the suggestion. The explanation should be concise and within 15 words. Do not include any ready-to-use responses.
-
+        Your explanation may consider the following criteria: 
+        1. Acknowledges interviewee’s response and extends discussion?
+        2. Align with the conversation flow, interview protocol, and the research goal?
+        3. Not repeat previous question?
 
         Generate feedback in this JSON format: 
         {
@@ -71,17 +69,16 @@ const getNextStepPrompt = () => {
 const getEvaluationPrompt = () => {
     return (
         `
-        Based on the current interview conversation, analyze the last question asked by the interviewer. Provide open-ended feedback on whether it has any issues using these criteria:
+        Evaluate the last question asked by the interviewer whether it has any issues using these criteria:
         1. Closed-ended? | Leading? | Not aligning with protocol?
         2. Not clearly phrased? Multiple questions in one?
 
-        Provide a clear explanation about the reasoning behind the feedback.
-        The explanation should be concise and within 25 words. Do not include any rephrased questions.
+        Provide a concise explanation about the evaluation within 15 words. Do not provide any rephrased ready-to-use questions directly to the interviewer.
 
         Generate feedback in this JSON format: 
         {
             "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found.
-            "explanation": string; // An open-ended explanation about the evaluation within 15 words.
+            "explanation": string; // An open-ended explanation about the suggestion within 15 words.
         }`).replace("\t", "")
 }
 
