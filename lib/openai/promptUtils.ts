@@ -17,14 +17,12 @@ const getAIFeedbackPrompt = () => {
     return (
         `
         IMPORTANT:
-        When receiving an input, determine if the person has finished speaking. If not, respond only with the word "none" and nothing else.
+        When receiving an input, determine if the person has finished speaking. If not, respond only with the word "none" and nothing else. You need to wait for the person to finish speaking before you can provide any feedback.
 
-        Once you confirm the person has finished speaking, determine whether the most recent bit of input was:
-        (a) an interviewer asking a question to an interviewee, or
-        (b) an interviewee responding to the last question asked by the interviewer.
+        Once you confirm the person has finished speaking, determine whether the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
         If neither, respond only with the word "none" and nothing else. 
 
-        If (a), the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
+        If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
         1. Closed-ended? | Leading? | Not aligning with protocol?
         2. Not clearly phrased? Multiple questions in one?
         Provide concise, closed-ended feedback. Do not include rationale or detailed explanation.
@@ -36,7 +34,7 @@ const getAIFeedbackPrompt = () => {
             "feedbackFor": "interviewer";  
         }
 
-        If (b), the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest a ready-to-use response for the interviewer to use next. This could be the next main question, a follow-up question, or another type of response. Provide the suggested response without any explanation or reasoning.
+        If the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest a ready-to-use response for the interviewer to use next. This could be the next main question, a follow-up question, or another type of response. Provide the suggested response without any explanation or reasoning.
 
         Generate feedback in this JSON format: 
         {
