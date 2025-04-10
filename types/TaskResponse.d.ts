@@ -6,7 +6,7 @@ type FeedbackResponse =
     }
   | {
       feedbackFor: "interviewee";
-      evaluation: "main question" | "follow-up" | "other";
+      evaluation: "protocol question" | "follow-up" | "other";
       feedback: string;
     };
 
@@ -18,7 +18,7 @@ type EvaluationResponse =
 
 type SuggestResponse = 
   | {
-      suggestion: "main question" | "follow-up" | "other";
+      suggestion: "protocol question" | "follow-up" | "other";
       explanation: string;
     }
 
