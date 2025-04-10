@@ -18,8 +18,10 @@ const getAIFeedbackPrompt = () => {
         `
         When receiving an input, determine if the person has finished speaking. If not, respond only with the word "none" and nothing else. You need to wait for the person to finish speaking before you can provide any feedback.
 
-        Once you confirm the person has finished speaking, determine whether the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
-        If neither, respond only with the word "none" and nothing else. 
+        Once you confirm the person has finished speaking, determine whether the most recent bit of input was either from an interviewer, or an interviewee.
+        If neither, respond only with the word "none" and nothing else.
+        
+        If the last bit of input was not related to the interview, respond only with the word "none" and nothing else.        
 
         If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
         1. Closed-ended? | Leading? | Not aligning with protocol?
