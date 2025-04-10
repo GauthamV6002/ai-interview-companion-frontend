@@ -44,7 +44,7 @@ const TRANSCRIPT_SAMPLE: Transcript = [
     },
     {
         "timestamp": "00:01:07",
-        "aiEvent": "follow-up",
+        "aiEvent": "next-step-suggestion",
         "aiEventData": "What was the biggest challenge you faced while working on that project?"
     },
     {
