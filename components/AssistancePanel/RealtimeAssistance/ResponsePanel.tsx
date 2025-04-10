@@ -83,8 +83,8 @@ const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: Eva
             {/* Evaluation and Explanation Section */}
             <div className='flex flex-col justify-center gap-2 ml-2'>
                 <div className='flex gap-2 items-center justify-start'>
-                    {/* <div style={{ color: getEvalColor(evaluation.evaluation) }} className='flex items-center justify-center gap-1'>{getEvalColoredDot(evaluation.evaluation)}{evaluation.evaluation.charAt(0).toUpperCase() + evaluation.evaluation.slice(1)}</div> */}
-                    <div style={{ color: getEvalColor(evaluation.evaluation) }} className='flex items-center justify-center gap-1'>{getEvalColoredDot(evaluation.evaluation)}{evaluation.evaluation}</div>
+                    <div style={{ color: getEvalColor(evaluation.evaluation) }} className='flex items-center justify-center gap-1'>{getEvalColoredDot(evaluation.evaluation)}{evaluation.evaluation.charAt(0).toUpperCase() + evaluation.evaluation.slice(1)}</div>
+                    {/* <div style={{ color: getEvalColor(evaluation.evaluation) }} className='flex items-center justify-center gap-1'>{getEvalColoredDot(evaluation.evaluation)}{evaluation.evaluation}</div> */}
                     <p>|</p>
                     <p className=''>{evaluation.explanation}</p>
                 </div>
@@ -93,44 +93,37 @@ const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: Eva
     );
 };
 
-// const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: EvaluationResponse, responseInProgress: boolean }) => {
-//     return (
-//         <div className='flex gap-4 items-start'>
-//             {/* Evaluation Icon Section */}
-//             <div className='flex flex-col items-center justify-center gap-2 text-center'>
-//                 <MessageSquarePlus className='size-8 w-fit text-blue-400' />
-//                 <p className='text-xs w-fit text-blue-400'>Evaluation</p>
-//             </div>
-
-//             <div className='w-[1px] bg-white/40'></div>
-
-//             {/* Evaluation and Explanation Section */}
-//             <div className='flex flex-col gap-2 ml-4'>
-//                 <p className='text-[1.1rem] font-semibold text-gray-800'>{evaluation.evaluation}</p>
-//                 <p className='text-[1rem] text-gray-600 leading-relaxed'>{evaluation.explanation}</p>
-//             </div>
-//         </div>
-//     );
-// };
 
 const SuggestDisplay = ({ suggestion, responseInProgress }: { suggestion: SuggestResponse, responseInProgress: boolean }) => {
+    const getSuggestColoredDot = () => {
+        return <div className='size-[6px] mt-1 bg-blue-400 rounded-full'></div>;
+    };
+
+    const color = 'lightblue';
+
     return (
         <div className='flex gap-2'>
+            {/* Suggestion Icon Section */}
             <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
                 <RefreshCw className='size-8 w-fit text-blue-400' />
                 <p className='text-xs w-fit text-blue-400'>SUGGESTION</p>
-
             </div>
 
             <div className='w-[1px] bg-white/40'></div>
 
+            {/* Suggestion and Explanation Section */}
             <div className='flex flex-col justify-center gap-2 ml-2'>
-                <p className='text-[1.1rem]'>{suggestion.suggestion}</p>
-                <p className='text-[1.1rem]'>{suggestion.explanation}</p>
+                <div className='flex gap-2 items-center justify-start'>
+                    <div style={{ color }} className='flex items-center justify-center gap-1'>
+                        {getSuggestColoredDot()}{suggestion.suggestion.charAt(0).toUpperCase() + suggestion.suggestion.slice(1)}
+                    </div>
+                    <p>|</p>
+                    <p className=''>{suggestion.explanation}</p>
+                </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 const ResponsePanel = ({ responseInProgress, modelResponses }: Props) => {
     const [currentResponseIndex, setCurrentResponseIndex] = useState<number>(0);
