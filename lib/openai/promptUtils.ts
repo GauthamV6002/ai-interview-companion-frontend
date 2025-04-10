@@ -33,7 +33,7 @@ const getAIFeedbackPrompt = () => {
             "feedbackFor": "interviewer";  
         }
 
-        If the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest a ready-to-use response for the interviewer to use next. This could be a protocol question, a follow-up question, or another type of response. If the suggestion is a protocol question, you must select an unasked question from the protocol. Provide the suggested response without any explanation or reasoning.
+        If the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest a ready-to-use response for the interviewer to use next. You must make sure your suggestion aligns with the conversation flow, interview protocol, and the research goal. This could be a protocol question, a follow-up question, or another type of response. If the suggestion is a protocol question, you must select an unasked question from the protocol. Provide the suggested response without any explanation or reasoning.
 
         Generate feedback in this JSON format: 
         {
@@ -64,7 +64,7 @@ const getNextStepPrompt = () => {
             "feedbackFor": "interviewer";  
         }
 
-        If the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest an appropriate next step for the interviewer. This could be a protocol question, a follow-up question, or another type of response. If the suggestion is a protocol question, you must select an unasked question from the protocol.
+        If the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest an appropriate next step for the interviewer. You must make sure your suggestion aligns with the conversation flow, interview protocol, and the research goal. This could be a protocol question, a follow-up question, or another type of response. If the suggestion is a protocol question, you must select an unasked question from the protocol.
         Provide a concise explanation about the suggestion within 15 words. Do not provide a ready-to-use response directly to the interviewer.
 
         Generate feedback in this JSON format: 
