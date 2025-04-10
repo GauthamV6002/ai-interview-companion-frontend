@@ -422,16 +422,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     }]);
                     break;
 
-                case "follow-up":
+                case "evaluation":
                     setModelResponses(prev => [...prev, {
-                        task: "follow-up",
+                        task: "evaluation",
                         response: responseString as EvaluationResponse,
                     }]);
                     break;
 
-                case "rephrase":
+                case "suggestion":
                     setModelResponses(prev => [...prev, {
-                        task: "rephrase",
+                        task: "suggestion",
                         response: responseString as SuggestResponse,
                     }]);
                     break;
