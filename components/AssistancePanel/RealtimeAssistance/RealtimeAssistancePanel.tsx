@@ -426,14 +426,14 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 case "evaluation":
                     setModelResponses(prev => [...prev, {
                         task: "evaluation",
-                        response: responseString as EvaluationResponse,
+                        response: JSON.parse(responseString) as EvaluationResponse,
                     }]);
                     break;
 
                 case "suggestion":
                     setModelResponses(prev => [...prev, {
                         task: "suggestion",
-                        response: responseString as SuggestResponse,
+                        response: JSON.parse(responseString) as SuggestResponse,
                     }]);
                     break;
 
@@ -519,14 +519,14 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const handleGetSuggestion = () => {
         getTaskResponse(getNextStepPrompt(), "suggestion");
         console.log("(AI TASK: next step) sent");
-        // addTranscriptAIAskEvent("follow-up");
+        addTranscriptAIAskEvent("next-step-suggestion");
     }
 
     const handleGetEvaluation = () => {
         getTaskResponse(getEvaluationPrompt(), "evaluation");
         console.log("(AI TASK: evaluate) sent; ");
         // setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
-        // addTranscriptAIAskEvent("rephrase");
+        addTranscriptAIAskEvent("question-evaluation");
     }
 
     // Attach event listeners to the data channel when a new one is created
@@ -618,8 +618,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     configurationMode={configurationMode}
                     isSessionActive={isSessionActive}
                     responseInProgress={responseInProgress}
-                    // handleGetSuggestion={handleGetSuggestion}
-                    // handleGetEvaluation={handleGetEvaluation}
+                    handleGetSuggestion={handleGetSuggestion}
+                    handleGetEvaluation={handleGetEvaluation}
                     stopSession={stopSession}
                     startSession={startSession}
                     elapsedTime={formatTime(elapsedTime)}
