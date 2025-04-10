@@ -130,7 +130,7 @@ const ReportSummary = (props: Props) => {
                     metrics={[
                         { icon: <CheckCircle className="h-4 w-4" />, text: `Feedback Usages: ${getNumberOfFeedbacks()}` },
                         { icon: <RefreshCw className="h-4 w-4" />, text: `Evaluation Usages: ${getNumberOfEvaluations()}` },
-                        { icon: <MessageSquarePlus className="h-4 w-4" />, text: `Suggestion Usages: ${getNumberOfSuggestions()}` }
+                        // { icon: <MessageSquarePlus className="h-4 w-4" />, text: `Suggestion Usages: ${getNumberOfSuggestions()}` }
                     ]}
                 />
             </CardContent>
