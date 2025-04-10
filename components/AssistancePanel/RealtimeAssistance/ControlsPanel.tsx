@@ -11,8 +11,8 @@ type Props = {
     configurationMode: string|null;
     isSessionActive: boolean;
     responseInProgress: boolean;
-    handleGetEvaluation: () => void;
-    handleGetSuggestion: () => void;
+    // handleGetEvaluation: () => void;
+    // handleGetSuggestion: () => void;
     stopSession: () => void;
     startSession: () => void;
     elapsedTime: string;
