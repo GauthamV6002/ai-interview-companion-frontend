@@ -185,8 +185,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 }
             });
             const data = await tokenResponse.json();
+            console.log(data);  // Inspect the structure of the response
             const EPHEMERAL_KEY = data.client_secret.value;
-            console.log('EPHEMERAL KEY', EPHEMERAL_KEY);
 
             // Create a peer connection
             const pc = new RTCPeerConnection();
@@ -516,16 +516,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         // addTranscriptAIAskEvent("feedback");
     }
 
-    const handleGetFollowUp = () => {
+    const handleGetSuggestion = () => {
         getTaskResponse(getNextStepPrompt(), "suggestion");
-        console.log("(AI TASK: follow-up) sent");
+        console.log("(AI TASK: next step) sent");
         // addTranscriptAIAskEvent("follow-up");
     }
 
-    const handleRephrase = (question_id: number, question: string) => {
+    const handleGetEvaluation = () => {
         getTaskResponse(getEvaluationPrompt(), "evaluation");
-        console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
-        setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
+        console.log("(AI TASK: evaluate) sent; ");
+        // setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
         // addTranscriptAIAskEvent("rephrase");
     }
 

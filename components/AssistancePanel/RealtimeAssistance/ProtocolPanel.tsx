@@ -26,7 +26,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                         <Checkbox className='size-6 mt-1' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} />
 
                         
-                        {(configurationMode === "interactive" || configurationMode === "full") && <RefreshCw className='size-6 hover:scale-110 hover:cursor-pointer mt-1 flex-shrink-0' onClick={() => handleRephrase(q_index, question.question)} /> }
+                        {/* {(configurationMode === "interactive" || configurationMode === "full") && <RefreshCw className='size-6 hover:scale-110 hover:cursor-pointer mt-1 flex-shrink-0' onClick={() => handleRephrase(q_index, question.question)} /> } */}
                         
                         <div className="ml-1">
                             <p className='text-white/90' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} >{question.question}</p>

@@ -11,7 +11,8 @@ type Props = {
     configurationMode: string|null;
     isSessionActive: boolean;
     responseInProgress: boolean;
-    handleGetFollowUp: () => void;
+    handleGetEvaluation: () => void;
+    handleGetSuggestion: () => void;
     stopSession: () => void;
     startSession: () => void;
     elapsedTime: string;
@@ -19,13 +20,14 @@ type Props = {
     isRecording: boolean;
 }
 
-const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetFollowUp, stopSession, startSession, elapsedTime, onShowInstructions, isRecording }: Props) => {
+const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetEvaluation, handleGetSuggestion, stopSession, startSession, elapsedTime, onShowInstructions, isRecording }: Props) => {
     return (
         <Card className='p-4 flex justify-between items-center'>
             {configurationMode === "interactive" || configurationMode === "full" ?
                 <div className='flex gap-2'>
                     {/* <Button onClick={generateTextResponse}>Test CMD</Button> */}
-                    <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetFollowUp}>{responseInProgress && <LoaderCircle className='size-4 animate-spin' />} Generate follow-up</Button>
+                    <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetEvaluation}>{responseInProgress && <LoaderCircle className='size-4 animate-spin' />} Evaluate My Question</Button>
+                    <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetSuggestion}>{responseInProgress && <LoaderCircle className='size-4 animate-spin' />} Suggest Next Step</Button>
                 </div>
                 :
                 <p className='text-white/60'>Interactive mode not enabled</p>}
