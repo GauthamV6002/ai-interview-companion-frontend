@@ -106,7 +106,7 @@ const SuggestDisplay = ({ suggestion, responseInProgress }: { suggestion: Sugges
             {/* Suggestion Icon Section */}
             <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
                 <RefreshCw className='size-8 w-fit text-blue-400' />
-                <p className='text-xs w-fit text-blue-400'>SUGGESTION</p>
+                <p className='text-xs w-fit text-blue-400'>{suggestion.suggestion.charAt(0).toUpperCase() + suggestion.suggestion.slice(1)}</p>
             </div>
 
             <div className='w-[1px] bg-white/40'></div>
@@ -114,10 +114,10 @@ const SuggestDisplay = ({ suggestion, responseInProgress }: { suggestion: Sugges
             {/* Suggestion and Explanation Section */}
             <div className='flex flex-col justify-center gap-2 ml-2'>
                 <div className='flex gap-2 items-center justify-start'>
-                    <div style={{ color }} className='flex items-center justify-center gap-1'>
+                    {/* <div style={{ color }} className='flex items-center justify-center gap-1'>
                         {getSuggestColoredDot()}{suggestion.suggestion.charAt(0).toUpperCase() + suggestion.suggestion.slice(1)}
                     </div>
-                    <p>|</p>
+                    <p>|</p> */}
                     <p className=''>{suggestion.explanation}</p>
                 </div>
             </div>
