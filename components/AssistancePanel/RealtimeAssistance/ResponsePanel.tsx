@@ -112,7 +112,7 @@ const ResponsePanel = ({ responseInProgress, modelResponses }: Props) => {
             case 'evaluation':
                 return <EvaluationDisplay evaluation={currentResponse.response as EvaluationResponse} responseInProgress={responseInProgress} />;
             case 'suggestion':
-                return <SuggestDisplay suggest={currentResponse.response as SuggestResponse} responseInProgress={responseInProgress} />;
+                return <SuggestDisplay suggestion={currentResponse.response as SuggestResponse} responseInProgress={responseInProgress} />;
             default:
                 return (
                     <div className='flex gap-2'>
