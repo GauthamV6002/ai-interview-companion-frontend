@@ -9,10 +9,9 @@ type Props = {
     selectedQuestion: number;
     setSelectedQuestion: (question: number) => void;
     configurationMode: string|null;
-    handleRephrase: (question_id: number, question: string) => void;
 }
 
-const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode, handleRephrase }: Props) => {
+const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode}: Props) => {
     return (
         <div className="h-full flex flex-col gap-2 overflow-y-scroll">
             {
