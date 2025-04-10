@@ -50,7 +50,8 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
 }
 
 const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: EvaluationResponse, responseInProgress: boolean }) => {
-    console.log(evaluation); // Log evaluation to the console to check if it's correctly passed
+    console.log(evaluation.evaluation);
+    console.log(evaluation.explanation);// Log evaluation to the console to check if it's correctly passed
     return (
         <div className='flex gap-4 items-start'>
             {/* Evaluation Icon Section */}
