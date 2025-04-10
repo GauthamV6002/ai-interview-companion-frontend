@@ -15,16 +15,17 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
     const getEvalColoredDot = (evaluation: string) => {
         if (evaluation === "good") return <div className='size-[6px] mt-1 bg-green-500 rounded-full'></div>;
         if (evaluation === "warning") return <div className='size-[6px] mt-1 bg-yellow-500 rounded-full'></div>;
-        if (evaluation === "probing") return <div className='size-[6px] mt-1 bg-blue-500 rounded-full'></div>;
+        if (["main question", "follow-up", "other"].includes(evaluation))
+            return <div className='size-[6px] mt-1 bg-blue-500 rounded-full'></div>;
         return <div className='size-[6px] mt-1 bg-gray-500 rounded-full'></div>;
-    }
+    };
 
     const getEvalColor = (evaluation: string) => {
-        if (evaluation === "good") return "lightgreen";
-        if (evaluation === "warning") return "goldenrod";
-        if (evaluation === "probing") return "text-blue-400";
-        return "lightgray";
-    }
+    if (evaluation === "good") return "lightgreen";
+    if (evaluation === "warning") return "goldenrod";
+    if (["main question", "follow-up", "other"].includes(evaluation)) return "lightblue";
+    return "lightgray";
+};
 
     return (
         <div className='flex gap-2'>
@@ -41,44 +42,43 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
                 <div className='flex gap-2 items-center justify-start'>
                     <div style={{color: getEvalColor(feedback.evaluation)}} className='flex items-center justify-center gap-1'>{getEvalColoredDot(feedback.evaluation)} {feedback.evaluation.charAt(0).toUpperCase() + feedback.evaluation.slice(1)}</div>
                     <p>|</p>
-                    <p className=''>{feedback.keywords}</p>
+                    <p className=''>{feedback.feedback}</p>
                 </div>
-                {(feedback.evaluation === "probing" || feedback.evaluation === "warning") && (<p className='text-[1.1rem]'>Tip: {feedback.tip}</p>)}
             </div>
         </div>
     )
 }
 
-const FollowUpDisplay = ({ followup, responseInProgress }: { followup: EvaluationResponse, responseInProgress: boolean }) => {
+const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: EvaluationResponse, responseInProgress: boolean }) => {
     return (
         <div className='flex gap-2'>
             <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
                 <MessageSquarePlus className='size-8 w-fit text-blue-400' />
-                <p className='text-xs w-fit text-blue-400 whitespace-nowrap'>FOLLOW UP</p>
+                <p className='text-xs w-fit text-blue-400 whitespace-nowrap'>Evaluation</p>
 
             </div>
 
             <div className='w-[1px] bg-white/40'></div>
 
             <div className='flex flex-col justify-center gap-2 ml-2'>
-                <p className='text-[1.1rem]'>{followup}</p>
+                <p className='text-[1.1rem]'>{evaluation}</p>
             </div>
         </div>
     )
 }
-const RephraseDisplay = ({ rephrase, responseInProgress }: { rephrase: SuggestResponse, responseInProgress: boolean }) => {
+const SuggestDisplay = ({ suggest, responseInProgress }: { suggest: SuggestResponse, responseInProgress: boolean }) => {
     return (
         <div className='flex gap-2'>
             <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
                 <RefreshCw className='size-8 w-fit text-blue-400' />
-                <p className='text-xs w-fit text-blue-400'>REPHRASE</p>
+                <p className='text-xs w-fit text-blue-400'>SUGGESTION</p>
 
             </div>
 
             <div className='w-[1px] bg-white/40'></div>
 
             <div className='flex flex-col justify-center gap-2 ml-2'>
-                <p className='text-[1.1rem]'>{rephrase}</p>
+                <p className='text-[1.1rem]'>{suggest}</p>
             </div>
         </div>
     )
