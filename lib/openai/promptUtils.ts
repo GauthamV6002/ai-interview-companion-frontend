@@ -13,10 +13,13 @@ const getSystemPrompt = (protocolString: string) => {
 }
 
 
-const getAIFeedbackPrompt = () => {
+const getAIFeedbackPrompt = (protocolString: string) => {
     return (
         `
-        When receiving an input, determine if the person has finished speaking. If not, respond only with the word "none" and nothing else. You need to wait for the person to finish speaking before you can provide any feedback.
+        AS a context, this is the interview protocol in JSON format: ${protocolString}.
+        Refer to it for the overall research objective, which is used by the interviewer to conduct the interview. It contains a rough outline of how the interview should go, so the interviewer should stick to it roughly, but may need to adapt based on the context.
+
+        During the conversation, when receiving an input, determine if the person has finished speaking. If not, respond only with the word "none" and nothing else. You need to wait for the person to finish speaking before you can provide any feedback.
 
         Once you confirm the person has finished speaking, determine whether the most recent bit of input was either from an interviewer, or an interviewee.
         If neither, respond only with the word "none" and nothing else.
@@ -49,10 +52,13 @@ const getAIFeedbackPrompt = () => {
 }
 
 
-const getNextStepPrompt = () => {
+const getNextStepPrompt = (protocolString: string) => {
     return (
         `
-        When receiving an input, determine whether the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
+        AS a context, this is the interview protocol in JSON format: ${protocolString}.
+        Refer to it for the overall research objective, which is used by the interviewer to conduct the interview. It contains a rough outline of how the interview should go, so the interviewer should stick to it roughly, but may need to adapt based on the context.
+
+        During the conversation, when receiving an input, determine whether the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
 
         If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
         1. Closed-ended? | Leading? | Not aligning with protocol?
