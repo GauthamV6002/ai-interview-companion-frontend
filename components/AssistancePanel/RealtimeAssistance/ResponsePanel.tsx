@@ -50,23 +50,25 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
 }
 
 const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: EvaluationResponse, responseInProgress: boolean }) => {
+    console.log(evaluation); // Log evaluation to the console to check if it's correctly passed
     return (
-        <div className='flex gap-2'>
-            <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
+        <div className='flex gap-4 items-start'>
+            {/* Evaluation Icon Section */}
+            <div className='flex flex-col items-center justify-center gap-2 text-center'>
                 <MessageSquarePlus className='size-8 w-fit text-blue-400' />
-                <p className='text-xs w-fit text-blue-400 whitespace-nowrap'>Evaluation</p>
-
+                <p className='text-xs w-fit text-blue-400'>Evaluation</p>
             </div>
 
             <div className='w-[1px] bg-white/40'></div>
 
-            <div className='flex flex-col justify-center gap-2 ml-2'>
-                <p className='text-[1.1rem]'>{evaluation.evaluation}</p>
-                <p className='text-[1.1rem]'>{evaluation.explanation}</p>
+            {/* Evaluation and Explanation Section */}
+            <div className='flex flex-col gap-2 ml-4'>
+                <p className='text-[1.1rem] font-semibold text-gray-800'>{evaluation.evaluation}</p>
+                <p className='text-[1rem] text-gray-600 leading-relaxed'>{evaluation.explanation}</p>
             </div>
         </div>
-    )
-}
+    );
+};
 const SuggestDisplay = ({ suggestion, responseInProgress }: { suggestion: SuggestResponse, responseInProgress: boolean }) => {
     return (
         <div className='flex gap-2'>
