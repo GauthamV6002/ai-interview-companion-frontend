@@ -186,6 +186,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             });
             const data = await tokenResponse.json();
             const EPHEMERAL_KEY = data.client_secret.value;
+            console.log('EPHEMERAL KEY', EPHEMERAL_KEY);
 
             // Create a peer connection
             const pc = new RTCPeerConnection();
