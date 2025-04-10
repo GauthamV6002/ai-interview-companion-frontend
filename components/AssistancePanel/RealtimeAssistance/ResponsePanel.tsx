@@ -50,6 +50,7 @@ const FeedbackDisplay = ({ feedback, responseInProgress }: { feedback: FeedbackR
 }
 
 const EvaluationDisplay = ({ evaluation, responseInProgress }: { evaluation: EvaluationResponse, responseInProgress: boolean }) => {
+    console.log(responseInProgress);
     console.log(evaluation.evaluation);
     console.log(evaluation.explanation);// Log evaluation to the console to check if it's correctly passed
     return (
