@@ -41,9 +41,9 @@ const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress,
                 )}
                 <div className='flex gap-2'>
                     {isSessionActive ? 
-                        <Button className='bg-red-500' onClick={stopSession}> <Pause className="mr-2" /> Stop AI</Button> 
+                        <Button className='bg-red-500' onClick={stopSession}> <Pause className="mr-2" /> Stop</Button> 
                         : 
-                        <Button onClick={startSession}> <Play className="mr-2" /> Start AI</Button>
+                        <Button onClick={startSession}> <Play className="mr-2" /> Start</Button>
                     }
                     <Button variant="outline" size="icon" onClick={onShowInstructions}>
                         <HelpCircle className="h-4 w-4" />
