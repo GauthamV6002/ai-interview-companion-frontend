@@ -513,20 +513,20 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const handleGetFeedback = () => {
         getTaskResponse(getAIFeedbackPrompt(), "feedback");
         console.log("(AI TASK: feedback) sent");
-        // addTranscriptAIAskEvent("feedback");
+        addTranscriptAIAskEvent("auto-feedback");
     }
 
-    const handleGetSuggestion = () => {
-        getTaskResponse(getNextStepPrompt(), "suggestion");
-        console.log("(AI TASK: next step) sent");
-        addTranscriptAIAskEvent("next-step-suggestion");
-    }
+    // const handleGetSuggestion = () => {
+    //     getTaskResponse(getNextStepPrompt(), "suggestion");
+    //     console.log("(AI TASK: next step) sent");
+    //     addTranscriptAIAskEvent("next-step-suggestion");
+    // }
 
     const handleGetEvaluation = () => {
         getTaskResponse(getEvaluationPrompt(), "evaluation");
         console.log("(AI TASK: evaluate) sent; ");
         // setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
-        addTranscriptAIAskEvent("question-evaluation");
+        addTranscriptAIAskEvent("request-feedback");
     }
 
     // Attach event listeners to the data channel when a new one is created
@@ -618,7 +618,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     configurationMode={configurationMode}
                     isSessionActive={isSessionActive}
                     responseInProgress={responseInProgress}
-                    handleGetSuggestion={handleGetSuggestion}
+                    // handleGetSuggestion={handleGetSuggestion}
                     handleGetEvaluation={handleGetEvaluation}
                     stopSession={stopSession}
                     startSession={startSession}

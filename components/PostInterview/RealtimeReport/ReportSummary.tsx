@@ -59,17 +59,17 @@ const ReportSummary = (props: Props) => {
     }
 
     const getNumberOfEvaluations = () => {
-        const rephrases = transcript.filter(item => item.aiEvent === "question-evaluation");
+        const rephrases = transcript.filter(item => item.aiEvent === "request-feedback");
         return rephrases.length;
     }
 
-    const getNumberOfSuggestions = () => {
-        const followUps = transcript.filter(item => item.aiEvent === "next-step-suggestion");
-        return followUps.length;
-    }
+    // const getNumberOfSuggestions = () => {
+    //     const followUps = transcript.filter(item => item.aiEvent === "next-step-suggestion");
+    //     return followUps.length;
+    // }
 
     const getNumberOfFeedbacks = () => {
-        const feedbacks = transcript.filter(item => item.aiEvent === "feedback");
+        const feedbacks = transcript.filter(item => item.aiEvent === "auto-feedback");
         return feedbacks.length;
     }
 
