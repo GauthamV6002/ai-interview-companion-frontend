@@ -511,7 +511,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
 
     const handleGetFeedback = () => {
-        getTaskResponse(getAIFeedbackPrompt(), "feedback");
+        getTaskResponse(getAIFeedbackPrompt(protocolString), "feedback");
         console.log("(AI TASK: feedback) sent");
         addTranscriptAIAskEvent("auto-feedback");
     }
