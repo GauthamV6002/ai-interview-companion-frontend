@@ -8,7 +8,7 @@ import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 import { Separator } from '@/components/ui/separator'
 import { FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
 import { AIEvent } from '@/types/Transcript'
-import { getFollowUpPrompt, getQuestionFeedbackPrompt, getRephrasePrompt } from '@/lib/openai/promptUtils'
+import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt, } from '../../../lib/openai/promptUtils'
 
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -510,19 +510,19 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
 
     const handleGetFeedback = () => {
-        getTaskResponse(getQuestionFeedbackPrompt(), "feedback");
+        getTaskResponse(getAIFeedbackPrompt(), "feedback");
         console.log("(AI TASK: feedback) sent");
         // addTranscriptAIAskEvent("feedback");
     }
 
     const handleGetFollowUp = () => {
-        getTaskResponse(getFollowUpPrompt(), "follow-up");
+        getTaskResponse(getNextStepPrompt(), "follow-up");
         console.log("(AI TASK: follow-up) sent");
         // addTranscriptAIAskEvent("follow-up");
     }
 
     const handleRephrase = (question_id: number, question: string) => {
-        getTaskResponse(getRephrasePrompt(question), "rephrase");
+        getTaskResponse(getEvaluationPrompt(question), "rephrase");
         console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
         setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
         // addTranscriptAIAskEvent("rephrase");
