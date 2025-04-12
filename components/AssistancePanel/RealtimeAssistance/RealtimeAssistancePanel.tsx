@@ -339,7 +339,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         const message = {
             type: "session.update",
             session: {
-                instructions: "You are a third-party expert interviewer who is listening in on an interview between an interviwer and interviewee. Your job is the provide feedback or information to the interviewer when they need it.",
+                instructions: getSystemPrompt(protocolString),
                 turn_detection: {
                     type: "server_vad",
                     create_response: false,
@@ -500,7 +500,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         setTranscript(t => [...t, {
             timestamp: formatTime(actualElapsedTime),
             text: text,
-            speaker: "interviewee", // TODO: Change to speaker
+            speaker: "interviewee",
         }]);
     }
 
@@ -519,7 +519,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
 
     const handleGetFeedback = () => {
-
         getTaskResponse(getAIFeedbackPrompt(protocolString), "feedback");
 
         console.log("(AI TASK: feedback) sent");
