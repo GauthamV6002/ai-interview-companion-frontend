@@ -14,7 +14,7 @@ const openai = new OpenAI({
 export async function POST(req: Request) {
 	try {
 		// Get transcript data from request
-		const { transcript } = await req.json();
+		const { transcript, protocol } = await req.json();
 
 		// Filter out non-speech items and extract only text
 		const speechOnly = transcript
@@ -27,17 +27,25 @@ export async function POST(req: Request) {
 		const formattedTranscript = speechOnly
 			.map((item: any) => `${item.text}`)
 			.join("\n");
-
-		console.log("Formatted transcript: \n", formattedTranscript);
-
-		const transcriptPrompt = `
+      
+      const transcriptPrompt = `
 			Here is the transcript of an interview. 
 			Extract the questions and follow-up questions from the transcript.
+      
+      First, take a look at the protocol of the interview. 
+      Use the main questions and follow-up questions from the protocol to identify the questions and follow-up questions in the transcript.
+      If a question is asked in the interview and is a main question on the protocol, it is a question.
+      If a question is asked in the interview and is a follow-up question on the protocol, it is a follow-up question.
+      
+      <protocol>
+      ${JSON.stringify(protocol)}
+      </protocol>
 			
 			<transcript>
-				${formattedTranscript}
-			</transcript>
-		`;
+      ${formattedTranscript}
+			</transcript>`;
+
+      console.log("Transcript: \n", transcriptPrompt);
 
 		// Call OpenAI API using chat.completions with JSON response format
 		const response = await openai.responses.create({

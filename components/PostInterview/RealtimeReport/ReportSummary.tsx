@@ -40,7 +40,7 @@ type Props = {}
 const ReportSummary = (props: Props) => {
 
     const { transcript, elapsedTime } = useTranscriptLog();
-    const { participantID, configurationMode } = useAuth();
+    const { participantID, configurationMode, protocol } = useAuth();
 
     // Add state for question counts
     const [questionData, setQuestionData] = React.useState({
@@ -121,7 +121,7 @@ const ReportSummary = (props: Props) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ transcript }),
+                body: JSON.stringify({ transcript, protocol }),
             });
             
             if (!response.ok) throw new Error('Failed to analyze transcript');
