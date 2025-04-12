@@ -78,7 +78,8 @@ const ReportSummary = (props: Props) => {
     // }
 
     const getNumberOfFeedbacks = () => {
-        const feedbacks = transcript.filter(item => item.aiEvent === "auto-feedback");
+      console.log(transcript)
+        const feedbacks = transcript.filter(item => item.aiEvent === "feedback");
         return feedbacks.length;
     }
 
