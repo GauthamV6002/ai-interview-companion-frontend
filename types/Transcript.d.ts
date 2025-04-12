@@ -1,5 +1,5 @@
 
-type AIEvent = "feedback" | "follow-up" | "next-question" | "rephrase" | "start-ai" | "stop-ai" | "recording-started" | "recording-stopped";
+type AIEvent = "auto-feedback" | "request-feedback" | "start-ai" | "stop-ai" | "recording-started" | "recording-stopped";
 type TranscriptItem = {
     timestamp: string;
     

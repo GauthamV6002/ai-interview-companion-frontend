@@ -1,35 +1,34 @@
-// type FeedbackResponse = {
-//     evaluation: "good" | "neutral" | "bad"; // Was the question good, neutral, or bad?
-//     keywords: string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.
-//     tip: string; // Actionable tip, if needed, within 15 words
-//     feedbackFor: "interviewer" | "interviewee"; // Whether the feedback is for the interviewer or the interviewee, based on whether a question was asked or answered
-// }
-
 type FeedbackResponse = 
   | {
       feedbackFor: "interviewer";
       evaluation: "good" | "warning";
-      keywords: string;
-      tip: string;
+      feedback: string;
     }
   | {
       feedbackFor: "interviewee";
-      evaluation: "good" | "warning" | "probing";
-      keywords: string;
-      tip: string;
+      evaluation: "protocol question" | "follow-up" | "other";
+      feedback: string;
     };
 
-type FollowUpResponse = string;
+type EvaluationResponse =
+  | {
+    evaluation: "good" | "warning";
+    explanation: string;
+    }
 
-type RephraseResponse = string;
+type SuggestResponse = 
+  | {
+      suggestion: "protocol question" | "follow-up" | "other";
+      explanation: string;
+    }
 
 
 
-type TaskResponse = FeedbackResponse | FollowUpResponse | RephraseResponse;
+type TaskResponse = FeedbackResponse | EvaluationResponse | SuggestResponse;
 
 
 
-type TaskType = "feedback" | "follow-up" | "rephrase";
+type TaskType = "feedback" | "evaluation" | "suggestion";
 
 
 type ModelResponse = {
@@ -37,4 +36,4 @@ type ModelResponse = {
     response: TaskResponse;
 }
 
-export { TaskResponse, FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse };
+export { TaskResponse, FeedbackResponse, EvaluationResponse, SuggestResponse, TaskType, ModelResponse };

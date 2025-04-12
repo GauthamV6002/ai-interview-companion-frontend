@@ -6,9 +6,9 @@ import { Button } from '../../ui/button'
 import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 
 import { Separator } from '@/components/ui/separator'
-import { FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
+import { FeedbackResponse, EvaluationResponse, SuggestResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
 import { AIEvent } from '@/types/Transcript'
-import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt, } from '../../../lib/openai/promptUtils'
+import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt } from '../../../lib/openai/promptUtils'
 
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -185,6 +185,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 }
             });
             const data = await tokenResponse.json();
+            console.log(data);  // Inspect the structure of the response
             const EPHEMERAL_KEY = data.client_secret.value;
 
             // Create a peer connection
@@ -422,17 +423,17 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     }]);
                     break;
 
-                case "follow-up":
+                case "evaluation":
                     setModelResponses(prev => [...prev, {
-                        task: "follow-up",
-                        response: responseString as FollowUpResponse,
+                        task: "evaluation",
+                        response: JSON.parse(responseString) as EvaluationResponse,
                     }]);
                     break;
 
-                case "rephrase":
+                case "suggestion":
                     setModelResponses(prev => [...prev, {
-                        task: "rephrase",
-                        response: responseString as RephraseResponse,
+                        task: "suggestion",
+                        response: JSON.parse(responseString) as SuggestResponse,
                     }]);
                     break;
 
@@ -510,22 +511,25 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
 
     const handleGetFeedback = () => {
-        getTaskResponse(getAIFeedbackPrompt(), "feedback");
+
+        getTaskResponse(getAIFeedbackPrompt(protocolString), "feedback");
+
         console.log("(AI TASK: feedback) sent");
-        // addTranscriptAIAskEvent("feedback");
+        addTranscriptAIAskEvent("auto-feedback");
     }
 
-    const handleGetFollowUp = () => {
-        getTaskResponse(getNextStepPrompt(), "follow-up");
-        console.log("(AI TASK: follow-up) sent");
-        // addTranscriptAIAskEvent("follow-up");
-    }
-
-    const handleRephrase = (question_id: number, question: string) => {
-        getTaskResponse(getEvaluationPrompt(question), "rephrase");
-        console.log("(AI TASK: rephrase) sent; rephrasing: ", question);
-        setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
-        // addTranscriptAIAskEvent("rephrase");
+    
+    // const handleGetSuggestion = () => {
+    //     getTaskResponse(getNextStepPrompt(), "suggestion");
+    //     console.log("(AI TASK: next step) sent");
+    //     addTranscriptAIAskEvent("next-step-suggestion");
+    // }
+    
+    const handleGetEvaluation = () => {
+        getTaskResponse(getEvaluationPrompt(), "evaluation");
+        console.log("(AI TASK: evaluate) sent; ");
+        // setSessionProtocol((sessionProtocol.map((q, index) => index === question_id ? { ...q, question: question } : q)) as Protocol);
+        addTranscriptAIAskEvent("request-feedback");
     }
 
     // Attach event listeners to the data channel when a new one is created
@@ -617,7 +621,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     configurationMode={configurationMode}
                     isSessionActive={isSessionActive}
                     responseInProgress={responseInProgress}
-                    handleGetFollowUp={handleGetFollowUp}
+                    // handleGetSuggestion={handleGetSuggestion}
+                    handleGetEvaluation={handleGetEvaluation}
                     stopSession={stopSession}
                     startSession={startSession}
                     elapsedTime={formatTime(elapsedTime)}
@@ -627,7 +632,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
                 <Separator />
 
-                <ProtocolPanel sessionProtocol={sessionProtocol} selectedQuestion={selectedQuestion} setSelectedQuestion={setSelectedQuestion} configurationMode={configurationMode} handleRephrase={handleRephrase} />
+                <ProtocolPanel sessionProtocol={sessionProtocol} selectedQuestion={selectedQuestion} setSelectedQuestion={setSelectedQuestion} configurationMode={configurationMode}/>
 
 
             </CardContent>

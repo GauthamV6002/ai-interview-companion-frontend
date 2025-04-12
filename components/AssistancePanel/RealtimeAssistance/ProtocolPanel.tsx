@@ -9,10 +9,9 @@ type Props = {
     selectedQuestion: number;
     setSelectedQuestion: (question: number) => void;
     configurationMode: string|null;
-    handleRephrase: (question_id: number, question: string) => void;
 }
 
-const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode, handleRephrase }: Props) => {
+const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode}: Props) => {
     return (
         <div className="h-full flex flex-col gap-2 overflow-y-scroll">
             {
@@ -26,7 +25,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                         <Checkbox className='size-6 mt-1' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} />
 
                         
-                        {(configurationMode === "interactive" || configurationMode === "full") && <RefreshCw className='size-6 hover:scale-110 hover:cursor-pointer mt-1 flex-shrink-0' onClick={() => handleRephrase(q_index, question.question)} /> }
+                        {/* {(configurationMode === "interactive" || configurationMode === "full") && <RefreshCw className='size-6 hover:scale-110 hover:cursor-pointer mt-1 flex-shrink-0' onClick={() => handleRephrase(q_index, question.question)} /> } */}
                         
                         <div className="ml-1">
                             <p className='text-white/90' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} >{question.question}</p>

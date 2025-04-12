@@ -58,18 +58,18 @@ const ReportSummary = (props: Props) => {
         return pauses.length;
     }
 
-    const getNumberOfRephrases = () => {
-        const rephrases = transcript.filter(item => item.aiEvent === "rephrase");
+    const getNumberOfEvaluations = () => {
+        const rephrases = transcript.filter(item => item.aiEvent === "request-feedback");
         return rephrases.length;
     }
 
-    const getNumberOfFollowUps = () => {
-        const followUps = transcript.filter(item => item.aiEvent === "follow-up");
-        return followUps.length;
-    }
+    // const getNumberOfSuggestions = () => {
+    //     const followUps = transcript.filter(item => item.aiEvent === "next-step-suggestion");
+    //     return followUps.length;
+    // }
 
     const getNumberOfFeedbacks = () => {
-        const feedbacks = transcript.filter(item => item.aiEvent === "feedback");
+        const feedbacks = transcript.filter(item => item.aiEvent === "auto-feedback");
         return feedbacks.length;
     }
 
@@ -110,8 +110,8 @@ const ReportSummary = (props: Props) => {
                     barColor="bg-blue-500"
                     metrics={[
                         { icon: <Clock className="h-4 w-4" />, text: `Elapsed Time: ${formatTime(elapsedTime)}` },
-                        { icon: <MessageSquare className="h-4 w-4" />, text: "Number of Questions Asked: 10" },
-                        { icon: <MessageSquarePlus className="h-4 w-4" />, text: "Number of Questions Follow-up Questions Asked: 8" }
+                        // { icon: <MessageSquare className="h-4 w-4" />, text: "Number of Questions Asked: 10" },
+                        // { icon: <MessageSquarePlus className="h-4 w-4" />, text: "Number of Questions Follow-up Questions Asked: 8" }
                     ]}
                 />
 
@@ -129,8 +129,8 @@ const ReportSummary = (props: Props) => {
                     barColor="bg-purple-500"
                     metrics={[
                         { icon: <CheckCircle className="h-4 w-4" />, text: `Feedback Usages: ${getNumberOfFeedbacks()}` },
-                        { icon: <RefreshCw className="h-4 w-4" />, text: `Rephrase Usages: ${getNumberOfRephrases()}` },
-                        { icon: <MessageSquarePlus className="h-4 w-4" />, text: `Follow-up Usages: ${getNumberOfFollowUps()}` }
+                        { icon: <RefreshCw className="h-4 w-4" />, text: `Evaluation Usages: ${getNumberOfEvaluations()}` },
+                        // { icon: <MessageSquarePlus className="h-4 w-4" />, text: `Suggestion Usages: ${getNumberOfSuggestions()}` }
                     ]}
                 />
             </CardContent>
