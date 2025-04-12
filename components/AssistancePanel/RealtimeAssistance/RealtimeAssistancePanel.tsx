@@ -8,7 +8,7 @@ import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 import { Separator } from '@/components/ui/separator'
 import { FeedbackResponse, EvaluationResponse, SuggestResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
 import { AIEvent } from '@/types/Transcript'
-import {getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt, } from '@/lib/openai/promptUtils'
+import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt } from '../../../lib/openai/promptUtils'
 
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -511,17 +511,20 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
 
     const handleGetFeedback = () => {
+
         getTaskResponse(getAIFeedbackPrompt(protocolString), "feedback");
+
         console.log("(AI TASK: feedback) sent");
         addTranscriptAIAskEvent("auto-feedback");
     }
 
+    
     // const handleGetSuggestion = () => {
     //     getTaskResponse(getNextStepPrompt(), "suggestion");
     //     console.log("(AI TASK: next step) sent");
     //     addTranscriptAIAskEvent("next-step-suggestion");
     // }
-
+    
     const handleGetEvaluation = () => {
         getTaskResponse(getEvaluationPrompt(), "evaluation");
         console.log("(AI TASK: evaluate) sent; ");
