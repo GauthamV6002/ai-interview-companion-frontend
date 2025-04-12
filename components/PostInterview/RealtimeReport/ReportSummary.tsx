@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { useTranscriptLog } from '@/context/TranscriptLogContext';
+import { useAuth } from '@/context/AuthContext';
 import { ArrowRight, CheckCircle, Clock, Download, FileAudio, MessageSquare, MessageSquarePlus, RefreshCw, Timer, TimerOff } from 'lucide-react'
 import React from 'react'
 
@@ -39,6 +40,7 @@ type Props = {}
 const ReportSummary = (props: Props) => {
 
     const { transcript, elapsedTime } = useTranscriptLog();
+    const { participantID, configurationMode } = useAuth();
 
     // Function to format time as mm:ss
     const formatTime = (seconds: number) => {
@@ -83,10 +85,13 @@ const ReportSummary = (props: Props) => {
         // Create a URL for the Blob
         const url = URL.createObjectURL(blob);
         
+        // Format date as YYYY-MM-DD
+        const formattedDate = new Date().toISOString().split('T')[0];
+        
         // Create a temporary anchor element
         const a = document.createElement('a');
         a.href = url;
-        a.download = `interview-transcript-${new Date().toISOString().split('T')[0]}.json`;
+        a.download = `transcript_${participantID}_${formattedDate}_${configurationMode || 'none'}.json`;
         
         // Trigger the download
         document.body.appendChild(a);
