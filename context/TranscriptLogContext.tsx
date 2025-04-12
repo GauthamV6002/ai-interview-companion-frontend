@@ -10,6 +10,38 @@ export interface TranscriptLogContextType {
     addAudioBlob: (blob: Blob) => void;
 }
 
+const DEFAULT_TRANSCRIPT: Transcript = [
+  {
+    text: "Hello, how are you?",
+    speaker: "interviewer",
+    timestamp: "00:00",
+  },
+  {
+    text: "I'm good, thank you!",
+    speaker: "interviewer",
+    timestamp: "00:01",
+  },
+  {
+    text: "What is your name?",
+    speaker: "interviewer",
+    timestamp: "00:02",
+  },
+  {
+    pauseDuration: 1000,
+    timestamp: "00:03",
+  },
+  {
+    text: "My name is John Doe.",
+    speaker: "interviewer",
+    timestamp: "00:04",
+  },
+  {
+    text: "What is your favorite color?",
+    speaker: "interviewer",
+    timestamp: "00:05",
+  },
+];
+
 const TranscriptLogContext = createContext<TranscriptLogContextType | undefined>(undefined);
 
 export const TranscriptLogProvider = ({ children }: { children: ReactNode }) => {

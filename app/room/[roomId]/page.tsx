@@ -32,6 +32,7 @@ export default function RoomPage() {
     const roomId = params.roomId as string;
     const isCaller = searchParams.get("caller") === "true";
     const [showInstructions, setShowInstructions] = useState(true);
+    const [isAIActive, setIsAIActive] = useState(false);
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -417,6 +418,7 @@ export default function RoomPage() {
                     roomId={roomId}
                     onEndCall={handleEndCall}
                     peerConnection={pcRef.current}
+                    isAIActive={isAIActive}
                 />
             </div>
 
@@ -428,6 +430,7 @@ export default function RoomPage() {
                             remoteAudioStream={remoteAudioStream}
                             mixedAudioStream={mixedAudioStream}
                             onShowInstructions={() => setShowInstructions(true)}
+                            onAISessionChange={setIsAIActive}
                         /> 
                         :
                         <NotesPanel />

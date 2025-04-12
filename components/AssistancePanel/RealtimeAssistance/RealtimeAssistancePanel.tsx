@@ -24,6 +24,7 @@ type Props = {
     remoteAudioStream: MediaStream | null;
     mixedAudioStream: MediaStream | null;
     onShowInstructions: () => void;
+    onAISessionChange?: (isActive: boolean) => void;
 }
 
 // Helper function to convert time string (mm:ss) to seconds
@@ -39,7 +40,7 @@ const formatTime = (seconds: number) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
-const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStream, onShowInstructions }: Props) => {
+const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStream, onShowInstructions, onAISessionChange }: Props) => {
 
     const { protocol, configurationMode, setConfigurationMode, protocolString } = useAuth();
     const { transcript, elapsedTime, setTranscript, setElapsedTime, addAudioBlob } = useTranscriptLog();
@@ -78,6 +79,13 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         const mode = searchParams.get("mode");
         if (mode) setConfigurationMode(mode as ConfigurationMode);
     }, []);
+
+    // Notify parent component when session state changes
+    useEffect(() => {
+        if (onAISessionChange) {
+            onAISessionChange(isSessionActive);
+        }
+    }, [isSessionActive, onAISessionChange]);
 
     // Function to start recording audio
     const startRecording = () => {

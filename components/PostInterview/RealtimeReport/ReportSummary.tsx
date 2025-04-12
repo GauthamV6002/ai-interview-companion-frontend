@@ -42,6 +42,13 @@ const ReportSummary = (props: Props) => {
     const { transcript, elapsedTime } = useTranscriptLog();
     const { participantID, configurationMode } = useAuth();
 
+    // Add state for question counts
+    const [questionData, setQuestionData] = React.useState({
+        questionCount: 0,
+        followUpCount: 0,
+        loading: false
+    });
+
     // Function to format time as mm:ss
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -102,6 +109,46 @@ const ReportSummary = (props: Props) => {
         URL.revokeObjectURL(url);
     };
 
+    // Function to analyze transcript
+    const analyzeTranscript = async () => {
+        if (transcript.length === 0) return;
+        
+        setQuestionData(prev => ({ ...prev, loading: true }));
+        
+        try {
+            const response = await fetch('/api/analyze-transcript', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ transcript }),
+            });
+            
+            if (!response.ok) throw new Error('Failed to analyze transcript');
+            
+            const data = await response.json();
+
+            console.log("Analysis result: ", data);
+
+            setQuestionData({
+                questionCount: data.questions.length,
+                followUpCount: data.followUpQuestions.length,
+                loading: false
+            });
+        } catch (error) {
+            console.error('Error analyzing transcript:', error);
+            setQuestionData(prev => ({ ...prev, loading: false }));
+        }
+    };
+
+    // Call analyzeTranscript when transcript changes
+    React.useEffect(() => {
+        if (transcript.length > 0) {
+            analyzeTranscript();
+        }
+    }, [transcript.length]); // Only run when transcript length changes
+
+
     return (
         <Card className='h-full flex-col flex'>
             {/* TODO: Remove red & white outlines */}
@@ -115,8 +162,18 @@ const ReportSummary = (props: Props) => {
                     barColor="bg-blue-500"
                     metrics={[
                         { icon: <Clock className="h-4 w-4" />, text: `Elapsed Time: ${formatTime(elapsedTime)}` },
-                        // { icon: <MessageSquare className="h-4 w-4" />, text: "Number of Questions Asked: 10" },
-                        // { icon: <MessageSquarePlus className="h-4 w-4" />, text: "Number of Questions Follow-up Questions Asked: 8" }
+                        { 
+                            icon: <MessageSquare className="h-4 w-4" />, 
+                            text: questionData.loading 
+                                ? "Number of Questions Asked: Analyzing..."
+                                : `Number of Questions Asked: ${questionData.questionCount}` 
+                        },
+                        { 
+                            icon: <MessageSquarePlus className="h-4 w-4" />, 
+                            text: questionData.loading 
+                                ? "Number of Follow-up Questions Asked: Analyzing..."
+                                : `Number of Follow-up Questions Asked: ${questionData.followUpCount}` 
+                        }
                     ]}
                 />
 

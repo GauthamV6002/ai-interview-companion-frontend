@@ -17,6 +17,7 @@ interface VideoChatProps {
     roomId: string;
     onEndCall: () => void;
     peerConnection: RTCPeerConnection | null;
+    isAIActive?: boolean;
 }
 
 export default function VideoChat({
@@ -27,7 +28,8 @@ export default function VideoChat({
     isCaller,
     roomId,
     onEndCall,
-    peerConnection
+    peerConnection,
+    isAIActive = false
 }: VideoChatProps) {
 
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -148,6 +150,8 @@ export default function VideoChat({
                     variant="destructive"
                     onClick={handleEndCall}
                     className="rounded-full p-1 h-12 w-12"
+                    disabled={isAIActive}
+                    title={isAIActive ? "You must stop the AI first" : ""}
                 >
                     <PhoneOff size={20} />
                 </Button>
