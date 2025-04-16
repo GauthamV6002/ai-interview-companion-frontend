@@ -8,7 +8,7 @@ import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 import { Separator } from '@/components/ui/separator'
 import { FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
 import { AIEvent } from '@/types/Transcript'
-import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt, } from '../../../lib/openai/promptUtils'
+import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt, getAIAnalysisPrompt } from '../../../lib/openai/promptUtils'
 
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -422,6 +422,37 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     }]);
                     break;
 
+                case "analysis":
+                    try {
+                        const analysisResponse = JSON.parse(responseString);
+                        
+                        // Update the sessionProtocol with the analysis feedback
+                        setSessionProtocol(prev => 
+                            prev.map((q, index) => 
+                                index === selectedQuestion 
+                                    ? { 
+                                        ...q, 
+                                        feedback: {
+                                            summary: analysisResponse.summary,
+                                            informationGap: analysisResponse.informationGap
+                                        } 
+                                    } 
+                                    : q
+                            )
+                        );
+                        
+                        // Also add to model responses for the response panel
+                        setModelResponses(prev => [...prev, {
+                            task: "analysis",
+                            response: analysisResponse,
+                        }]);
+                        
+                        console.log("Analysis response added to question:", selectedQuestion);
+                    } catch (err) {
+                        console.error("Error parsing analysis response:", err);
+                    }
+                    break;
+
                 case "follow-up":
                     setModelResponses(prev => [...prev, {
                         task: "follow-up",
@@ -513,6 +544,22 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         getTaskResponse(getAIFeedbackPrompt(), "feedback");
         console.log("(AI TASK: feedback) sent");
         // addTranscriptAIAskEvent("feedback");
+    }
+
+    const handleGetAnalysis = () => {
+        // Get the current question text
+        const currentQuestion = sessionProtocol[selectedQuestion].question;
+        
+        // Get existing feedback summary if available, otherwise empty string
+        const currentInformation = sessionProtocol[selectedQuestion].feedback 
+            ? sessionProtocol[selectedQuestion].feedback.summary.join(", ") 
+            : "";
+        
+        // Use the analysis prompt to get feedback focused on the current question
+        getTaskResponse(getAIAnalysisPrompt(protocolString, currentQuestion, currentInformation), "analysis");
+        
+        console.log("(AI TASK: analysis) sent for question:", currentQuestion);
+        addTranscriptAIAskEvent("analysis");
     }
 
     const handleGetFollowUp = () => {
@@ -618,6 +665,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     isSessionActive={isSessionActive}
                     responseInProgress={responseInProgress}
                     handleGetFollowUp={handleGetFollowUp}
+                    handleGetAnalysis={handleGetAnalysis}
                     stopSession={stopSession}
                     startSession={startSession}
                     elapsedTime={formatTime(elapsedTime)}

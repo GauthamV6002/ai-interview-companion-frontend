@@ -18,27 +18,43 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
             {
                 sessionProtocol.map((question, q_index) => (
                     <Card
-                        className={`p-3 flex flex-row justify-start items-center gap-2 hover:cursor-pointer`}
+                        className={`p-3 flex flex-col justify-start gap-2 hover:cursor-pointer`}
                         style={q_index === selectedQuestion ? { backgroundColor: "rgba(0, 255, 0, 0.1)", color: "lightgreen" } : {}}
                         key={q_index}
                         onClick={() => setSelectedQuestion(q_index)}
                     >
-                        <Checkbox className='size-6 mt-1' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} />
-
-                        
-                        {(configurationMode === "interactive" || configurationMode === "full") && <RefreshCw className='size-6 hover:scale-110 hover:cursor-pointer mt-1 flex-shrink-0' onClick={() => handleRephrase(q_index, question.question)} /> }
-                        
-                        <div className="ml-1">
-                            <p className='text-white/90' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} >{question.question}</p>
-                            {/* {
-                                (q_index === selectedQuestion) &&
-                                (<div className='flex gap-1 justify-start items-center'>
-                                    <Checkbox className='size-3' />
-                                    <p className='text-sm text-white/60'>Follow-up</p>
-                                </div>)
-                            } */}
-
+                        <div className="flex flex-row justify-start items-center gap-2">
+                            <Checkbox className='size-6 mt-1' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} />
+                            
+                            {(configurationMode === "interactive" || configurationMode === "full") && 
+                                <RefreshCw className='size-6 hover:scale-110 hover:cursor-pointer mt-1 flex-shrink-0' onClick={(e) => {
+                                    e.stopPropagation(); // Prevent card click
+                                    handleRephrase(q_index, question.question);
+                                }} />
+                            }
+                            
+                            <div className="ml-1">
+                                <p className='text-white/90' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}}>{question.question}</p>
+                            </div>
                         </div>
+
+                        {/* Display feedback if available */}
+                        {question.feedback && (
+                            <div className="mt-2 p-2 bg-gray-800 rounded-md">
+                                <div className="mb-1">
+                                    <p className="text-sm font-semibold text-blue-400">Summary:</p>
+                                    <ul className="list-disc pl-4 text-sm text-white/80">
+                                        {question.feedback.summary.map((item, index) => (
+                                            <li key={index}>{item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <div className="mt-2">
+                                    <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
+                                    <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
+                                </div>
+                            </div>
+                        )}
                     </Card>
                 ))
             }

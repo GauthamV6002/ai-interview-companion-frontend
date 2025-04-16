@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ModelResponse, FeedbackResponse, FollowUpResponse, RephraseResponse } from '@/types/TaskResponse';
-import { ChevronLeft, ChevronRight, MessageSquarePlus, RefreshCw } from 'lucide-react';
+import { ModelResponse, FeedbackResponse, FollowUpResponse, RephraseResponse, AnalysisResponse } from '@/types/TaskResponse';
+import { ChevronLeft, ChevronRight, MessageSquarePlus, RefreshCw, BookOpen } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 
 type Props = {
@@ -84,6 +84,34 @@ const RephraseDisplay = ({ rephrase, responseInProgress }: { rephrase: RephraseR
     )
 }
 
+const AnalysisDisplay = ({ analysis, responseInProgress }: { analysis: AnalysisResponse, responseInProgress: boolean }) => {
+    return (
+        <div className='flex gap-2'>
+            <div className='flex flex-col items-center justify-center gap-2 text-center w-fit'>
+                <BookOpen className='size-8 w-fit text-green-400' />
+                <p className='text-xs w-fit text-green-400'>ANALYSIS</p>
+            </div>
+
+            <div className='w-[1px] bg-white/40'></div>
+
+            <div className='flex flex-col justify-center gap-2 ml-2'>
+                <div className='mb-1'>
+                    <p className="font-semibold text-green-400 mb-1">Summary:</p>
+                    <ul className="list-disc pl-4">
+                        {analysis.summary.map((item, index) => (
+                            <li key={index}>{item}</li>
+                        ))}
+                    </ul>
+                </div>
+                <div className='mt-1'>
+                    <p className="font-semibold text-green-400 mb-1">Information Gap:</p>
+                    <p>{analysis.informationGap}</p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 const ResponsePanel = ({ responseInProgress, modelResponses }: Props) => {
     const [currentResponseIndex, setCurrentResponseIndex] = useState<number>(0);
 
@@ -111,6 +139,8 @@ const ResponsePanel = ({ responseInProgress, modelResponses }: Props) => {
                 return <FollowUpDisplay followup={currentResponse.response as FollowUpResponse} responseInProgress={responseInProgress} />;
             case 'rephrase':
                 return <RephraseDisplay rephrase={currentResponse.response as RephraseResponse} responseInProgress={responseInProgress} />;
+            case 'analysis':
+                return <AnalysisDisplay analysis={currentResponse.response as AnalysisResponse} responseInProgress={responseInProgress} />;
             default:
                 return (
                     <div className='flex gap-2'>

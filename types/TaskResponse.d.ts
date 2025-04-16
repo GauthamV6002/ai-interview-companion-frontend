@@ -23,18 +23,18 @@ type FollowUpResponse = string;
 
 type RephraseResponse = string;
 
+type AnalysisResponse = {
+  summary: string[];
+  informationGap: string;
+};
 
+type TaskResponse = FeedbackResponse | FollowUpResponse | RephraseResponse | AnalysisResponse;
 
-type TaskResponse = FeedbackResponse | FollowUpResponse | RephraseResponse;
-
-
-
-type TaskType = "feedback" | "follow-up" | "rephrase";
-
+type TaskType = "feedback" | "follow-up" | "rephrase" | "analysis";
 
 type ModelResponse = {
     task: TaskType;
     response: TaskResponse;
 }
 
-export { TaskResponse, FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse };
+export { TaskResponse, FeedbackResponse, FollowUpResponse, RephraseResponse, AnalysisResponse, TaskType, ModelResponse };

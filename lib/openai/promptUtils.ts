@@ -1,4 +1,3 @@
-
 const getSystemPrompt = (protocolString: string) => {
     return (
     `You are an expert qualitative researcher with extensive experience in conducting and observing semi-structured interviews. 
@@ -83,7 +82,7 @@ const getNextStepPrompt = () => {
         `Generate a follow-up question that deepens the conversation, based on the last question asked or answered.
 
         Ensure the generated follow-up question: 
-        1. Acknowledges interviewee’s response and extends discussion.
+        1. Acknowledges interviewee's response and extends discussion.
         2. Prompts reflection, personal experiences, or specific examples.
         3. Uses an open-ended, empathetic tone.
         4. Precise and aligned with interview protocol.
@@ -115,22 +114,198 @@ const getEvaluationPrompt = (questionToRephrase: string) => {
 
 export {
     getSystemPrompt,
+    getAIAnalysisPrompt,
     getAIFeedbackPrompt,
     getNextStepPrompt,
     getEvaluationPrompt,
 }
 
 /*
-Function 1: Assess and Provide Feedback on the Interviewer’s Question
+Function 1: Assess and Provide Feedback on the Interviewer's Question
 Prompt:
 "Analyze the following question asked by the interviewer in the context of a semi-structured research interview: '[Insert Question]'. Provide open-ended feedback on its effectiveness, highlighting strengths and areas for improvement. Explain the rationale behind your feedback to help the interviewer refine their questioning skills. Evaluate factors such as clarity, relevance to the research objectives, ability to elicit rich responses, and avoidance of leading or biased phrasing."
 Function 2: Suggest a Suitable Next Response
 Prompt:
-"Based on the current state of the interview, including the previous questions and responses, suggest an appropriate next step for the interviewer. This could be the next main question, a follow-up question, or another response type (e.g., probing for detail or shifting topics). Provide a clear suggestion and explain the reasoning behind it, considering the conversation’s flow and the research goals."
-Function 1: Assess and Provide Feedback on the Interviewer’s Question
+"Based on the current state of the interview, including the previous questions and responses, suggest an appropriate next step for the interviewer. This could be the next main question, a follow-up question, or another response type (e.g., probing for detail or shifting topics). Provide a clear suggestion and explain the reasoning behind it, considering the conversation's flow and the research goals."
+Function 1: Assess and Provide Feedback on the Interviewer's Question
 Prompt:
 "Evaluate the following question asked by the interviewer in a semi-structured research interview: '[Insert Question]'. Provide concise, closed-ended feedback indicating its effectiveness. Use a simple rating (e.g., 'Effective' or 'Needs Improvement') or a brief statement (e.g., 'Well-phrased' or 'Too broad'). Do not include rationale or detailed explanation."
 Function 2: Suggest a Suitable Next Response
 Prompt:
 "Based on the current state of the interview, suggest a straightforward next response for the interviewer. This could be the next main question, a follow-up question, or another type of response. Provide the suggestion without any explanation or reasoning."
 */
+
+
+
+/*
+
+
+
+
+const getSystemPrompt = (protocolString: string) => {
+    return (
+    `You are an expert qualitative researcher with extensive experience in conducting and observing semi-structured interviews. 
+    Your task is to monitor the interview and provide assistance to ensure it progresses smoothly and naturally while helping to elicit rich, in-depth perspectives from the interviewee. 
+
+    For all the tasks you help with, ensure to refer to the following interview protocol for the overall research objective, which is used by the interviewer to conduct the interview.
+    It contains a rough outline of how the interview should go, so the interviewer should stick to it roughly, but may need to adapt based on the context.
+
+    Review it here, in JSON format: ${protocolString}`)
+
+}
+*/
+const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, currentInformation: string) => {
+    return (
+        `
+        You are assisting an interviewer conducting an interview based on a predefined protocol provided in JSON format: ${protocolString}. The protocol includes a rough outline of questions or topics to cover, indicating the overall research objective. The interviewer should generally follow this outline but may adapt based on context.
+        
+        The current focus is on the target question: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty.
+        
+        Your task is to analyze the interviewee's latest answer using the protocol's questions or topics, the current target question, and the existing information. Provide summary and information gap analysis to the interviewer in JSON format.
+   
+        1. Summary
+        - Extract up to 3 key pieces of new information from the latest answer.
+        - Each piece must be a keyword or short phrase (max 10 words), not a full sentence.
+        - Include only content relevant to the target question and protocol's questions/topics.
+        - Exclude information already in the existing information summary.
+
+        2. Information Gap Analysis
+
+        Assess what's missing, unclear, or worth exploring further, based on the protocol questions/topics (reflecting research interests), current target question, and existing information for the target question.
+
+        - If gaps exist, suggest an open-ended follow-up direction with a short explanation.
+        - If no gaps remain and the topic is well-covered, recommend moving to the next question.
+        - Limit analysis to 15 words.
+
+        Summary must reflect new, relevant information only.
+        Information gap analysis must align with protocol, target question, and existing information.
+
+        Provide feedback in this JSON format:
+        {
+        "summary": [
+            "keyword/phrase 1",
+            "keyword/phrase 2",
+            "keyword/phrase 3"
+        ], // An array of up to 3 strings. Use fewer if less information is relevant.
+        "informationGap": string //  Analysis, follow-up direction or instruction to proceed within 15 words.
+        }
+
+        Deliver only the JSON response, without comments or rationale.
+        Ensure the response is valid JSON.
+        ,
+        `).replace("\t", "")
+}
+/*
+const getAIFeedbackPrompt = (protocolString: string) => {
+    return (
+        `
+        AS a context, this is the interview protocol in JSON format: ${protocolString}.
+        Refer to it for the overall research objective, which is used by the interviewer to conduct the interview. It contains a rough outline of how the interview should go, so the interviewer should stick to it roughly, but may need to adapt based on the context.
+
+        During the conversation, when receiving an input, determine if the person has finished speaking. If not, respond only with the word "none" and nothing else. You need to wait for the person to finish speaking before you can provide any feedback.
+
+        Once you confirm the person has finished speaking, determine whether the most recent bit of input was either from an interviewer, or an interviewee.
+        If neither, respond only with the word "none" and nothing else.
+        
+        If the last bit of input was not related to the interview, respond only with the word "none" and nothing else.        
+
+        If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
+        1. Closed-ended? | Leading? | Not aligning with protocol?
+        2. Not clearly phrased? Multiple questions in one?
+        Provide concise, closed-ended feedback. Do not include rationale or detailed explanation.
+
+        Generate feedback in this JSON format: 
+        {
+            "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found  
+            "feedback": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence. If "warning", add a ready-to-use rephrased question within 15 words.
+            "feedbackFor": "interviewer";  
+        }
+
+        If the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest a ready-to-use response for the interviewer to use next. You must make sure your suggestion aligns with the conversation flow, interview protocol, and the research goal. This could be a protocol question, a follow-up question, or another type of response. If the suggestion is a protocol question, you must select an unasked question from the protocol. Provide the suggested response without any explanation or reasoning.
+
+        Generate feedback in this JSON format: 
+        {
+            "evaluation": "protocol question" | "follow-up" | "other"; //
+            "feedback": string; // A ready-to-use suggested response within 15 words.
+            "feedbackFor": "interviewee";
+        }
+         
+         Deliver only the final JSON response. Do not include any comments, quotes, rationale in the JSON response. Ensure it can be parsed as valid JSON.",
+        `).replace("\t", "")
+}
+
+
+const getNextStepPrompt = (protocolString: string) => {
+    return (
+        `
+        AS a context, this is the interview protocol in JSON format: ${protocolString}.
+        Refer to it for the overall research objective, which is used by the interviewer to conduct the interview. It contains a rough outline of how the interview should go, so the interviewer should stick to it roughly, but may need to adapt based on the context.
+
+        During the conversation, when receiving an input, determine whether the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
+
+        If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
+        1. Closed-ended? | Leading? | Not aligning with protocol?
+        2. Not clearly phrased? Multiple questions in one?
+        Provide concise, open-ended feedback with a detailed explanation within 15 words. Do not provide any ready-to-use responses directly to the interviewer.
+
+        Generate feedback in this JSON format: 
+        {
+            "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found  
+            "feedback": string; // A concise explanation about the evaluation within 15 words.
+            "feedbackFor": "interviewer";  
+        }
+
+        If the last bit of input was an interviewee responding to the last question asked by the interviewer, suggest an appropriate next step for the interviewer. You must make sure your suggestion aligns with the conversation flow, interview protocol, and the research goal. This could be a protocol question, a follow-up question, or another type of response. If the suggestion is a protocol question, you must select an unasked question from the protocol.
+        Provide a concise explanation about the suggestion within 15 words. Do not provide a ready-to-use response directly to the interviewer.
+
+        Generate feedback in this JSON format: 
+        {
+            "evaluation": "protocol question" | "follow-up" | "other"; //
+            "feedback": string; // A concise explanation about the suggestion within 15 words.
+            "feedbackFor": "interviewee";
+        }
+         
+         Deliver only the final JSON response. Do not include any comments, quotes, rationale in the JSON response. Ensure it can be parsed as valid JSON.",
+        `).replace("\t", "")
+}
+
+const getEvaluationPrompt = () => {
+    return (
+        `
+        Evaluate the last question asked by the interviewer whether it has any issues using these criteria:
+        1. Closed-ended? | Leading? | Not aligning with protocol?
+        2. Not clearly phrased? Multiple questions in one?
+
+        Provide a concise explanation about the evaluation within 15 words. Do not provide any rephrased ready-to-use questions directly to the interviewer.
+
+        Generate feedback in this JSON format: 
+        {
+            "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found.
+            "explanation": string; // An open-ended explanation about the suggestion within 15 words.
+        }`).replace("\t", "")
+}
+
+export {
+    getSystemPrompt,
+    getAIAnalysisPrompt,
+    getAIFeedbackPrompt,
+    getNextStepPrompt,
+    getEvaluationPrompt,
+}
+
+    //    `According to the interviewee's response to the last question asked by the interviewer, suggest an appropriate next step for the interviewer. This could be the next main question, a follow-up question, or another type of response.
+
+    //     In additon to the suggested next step, provide a concise explanation about the suggestion within 15 words.Do not provide a ready-to-use response directly to the interviewer.
+        
+    //     Your explanation may consider the following criteria: 
+    //     1. Acknowledges interviewee's response and extends discussion?
+    //     2. Align with the conversation flow, interview protocol, and the research goal?
+    //     3. Not repeat previous question?
+
+    //     Generate feedback in this JSON format: 
+    //     {
+    //         "suggestion": "main question" | "follow-up" | "other"; //
+    //         "explanation": string; // An open-ended explanation about the suggestion within 15 words.
+    //     }         
+    //     `).replace("\t", "")
+    // */
