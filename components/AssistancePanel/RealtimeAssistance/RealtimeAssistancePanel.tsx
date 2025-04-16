@@ -432,19 +432,17 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                     ? { 
                                         ...q, 
                                         feedback: {
-                                            summary: analysisResponse.summary,
+                                            // If there's existing feedback, merge the summaries, otherwise use the new one
+                                            summary: q.feedback 
+                                                ? [...q.feedback.summary, ...analysisResponse.summary]
+                                                : analysisResponse.summary,
+                                            // Always use the new information gap
                                             informationGap: analysisResponse.informationGap
                                         } 
                                     } 
                                     : q
                             )
                         );
-                        
-                        // Also add to model responses for the response panel
-                        setModelResponses(prev => [...prev, {
-                            task: "analysis",
-                            response: analysisResponse,
-                        }]);
                         
                         console.log("Analysis response added to question:", selectedQuestion);
                     } catch (err) {
