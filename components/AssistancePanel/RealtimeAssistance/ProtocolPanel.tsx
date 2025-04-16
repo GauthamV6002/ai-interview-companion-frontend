@@ -1,7 +1,6 @@
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Protocol } from '@/types/Protocol';
-import { RefreshCw } from 'lucide-react';
 import React from 'react'
 
 type Props = {
@@ -9,10 +8,9 @@ type Props = {
     selectedQuestion: number;
     setSelectedQuestion: (question: number) => void;
     configurationMode: string|null;
-    handleRephrase: (question_id: number, question: string) => void;
 }
 
-const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode, handleRephrase }: Props) => {
+const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode }: Props) => {
     return (
         <div className="h-full flex flex-col gap-2 overflow-y-scroll">
             {
@@ -25,14 +23,6 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                     >
                         <div className="flex flex-row justify-start items-center gap-2">
                             <Checkbox className='size-6 mt-1' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} />
-                            
-                            {(configurationMode === "interactive" || configurationMode === "full") && 
-                                <RefreshCw className='size-6 hover:scale-110 hover:cursor-pointer mt-1 flex-shrink-0' onClick={(e) => {
-                                    e.stopPropagation(); // Prevent card click
-                                    handleRephrase(q_index, question.question);
-                                }} />
-                            }
-                            
                             <div className="ml-1">
                                 <p className='text-white/90' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}}>{question.question}</p>
                             </div>
