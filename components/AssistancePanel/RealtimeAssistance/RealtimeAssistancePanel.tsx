@@ -676,7 +676,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     configurationMode={configurationMode}
                     isSessionActive={isSessionActive}
                     responseInProgress={responseInProgress}
-                    handleGetFollowUp={handleGetFollowUp}
                     handleGetAnalysis={handleGetAnalysis}
                     stopSession={stopSession}
                     startSession={startSession}
