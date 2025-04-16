@@ -24,17 +24,17 @@ const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress,
         <Card className='p-4 flex justify-between items-center'>
             {configurationMode === "interactive" || configurationMode === "full" ?
                 <div className='flex gap-2'>
-                    {/* <Button onClick={generateTextResponse}>Test CMD</Button> */}
+                    {/* <Button onClick={generateTextResponse}>Test CMD</Button>
                     <Button disabled={!isSessionActive || responseInProgress} onClick={() => {
                         // This will be handled by the parent component
                         window.dispatchEvent(new CustomEvent('getFollowUp'));
                     }}>
                         {responseInProgress && <LoaderCircle className='size-4 animate-spin mr-2' />} 
                         Generate follow-up
-                    </Button>
+                    </Button> */}
                     <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetAnalysis}>
                         {responseInProgress && <LoaderCircle className='size-4 animate-spin mr-2' />} 
-                        Add question feedback
+                        Give me Analysis
                     </Button>
                 </div>
                 :

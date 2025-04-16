@@ -12,7 +12,6 @@ import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationP
 
 
 import { Skeleton } from '@/components/ui/skeleton'
-import ResponsePanel from './ResponsePanel'
 import ControlsPanel from './ControlsPanel'
 import ProtocolPanel from './ProtocolPanel'
 import { Protocol } from '@/types/Protocol'
@@ -666,11 +665,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 </CardHeader>
             }
             <CardContent className='h-full flex flex-col gap-2'>
-
-                {(configurationMode !== "none" && configurationMode !== "post") && <ResponsePanel
-                    responseInProgress={responseInProgress}
-                    modelResponses={modelResponses}
-                />}
 
                 {(configurationMode !== "none" && configurationMode !== "post") && <ControlsPanel
                     configurationMode={configurationMode}
