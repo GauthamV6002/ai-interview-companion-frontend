@@ -24,7 +24,6 @@ type Props = {
     remoteAudioStream: MediaStream | null;
     mixedAudioStream: MediaStream | null;
     onShowInstructions: () => void;
-    handleGetFollowUp: () => void;
 }
 
 // Helper function to convert time string (mm:ss) to seconds
@@ -40,7 +39,7 @@ const formatTime = (seconds: number) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
-const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStream, onShowInstructions, handleGetFollowUp }: Props) => {
+const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStream, onShowInstructions }: Props) => {
 
     const { protocol, configurationMode, setConfigurationMode, protocolString } = useAuth();
     const { transcript, elapsedTime, setTranscript, setElapsedTime, addAudioBlob } = useTranscriptLog();
@@ -642,6 +641,18 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                 mediaRecorderRef.current.stop();
             }
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleFollowUp = () => {
+            getTaskResponse(getNextStepPrompt(), "follow-up");
+            console.log("(AI TASK: follow-up) sent");
+        };
+
+        window.addEventListener('getFollowUp', handleFollowUp);
+        return () => {
+            window.removeEventListener('getFollowUp', handleFollowUp);
         };
     }, []);
 

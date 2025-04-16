@@ -11,7 +11,6 @@ type Props = {
     configurationMode: string|null;
     isSessionActive: boolean;
     responseInProgress: boolean;
-    handleGetFollowUp: () => void;
     handleGetAnalysis: () => void;
     stopSession: () => void;
     startSession: () => void;
@@ -20,13 +19,16 @@ type Props = {
     isRecording: boolean;
 }
 
-const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetFollowUp, handleGetAnalysis, stopSession, startSession, elapsedTime, onShowInstructions, isRecording }: Props) => {
+const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetAnalysis, stopSession, startSession, elapsedTime, onShowInstructions, isRecording }: Props) => {
     return (
         <Card className='p-4 flex justify-between items-center'>
             {configurationMode === "interactive" || configurationMode === "full" ?
                 <div className='flex gap-2'>
                     {/* <Button onClick={generateTextResponse}>Test CMD</Button> */}
-                    <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetFollowUp}>
+                    <Button disabled={!isSessionActive || responseInProgress} onClick={() => {
+                        // This will be handled by the parent component
+                        window.dispatchEvent(new CustomEvent('getFollowUp'));
+                    }}>
                         {responseInProgress && <LoaderCircle className='size-4 animate-spin mr-2' />} 
                         Generate follow-up
                     </Button>
