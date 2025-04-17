@@ -43,7 +43,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                     </ul>
                                 </div>
                                 <div className="mt-2">
-                                    <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
+                                    <p className="text-sm font-semibold text-blue-400">Suggestion:</p>
                                     <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
                                 </div>
                             </div>

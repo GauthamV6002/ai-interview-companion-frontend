@@ -173,9 +173,9 @@ const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, cu
 
         Assess what's missing, unclear, or worth exploring further, based on the protocol questions/topics (reflecting research interests), current target question, and existing information for the target question.
 
-        - If gaps exist, suggest an open-ended follow-up direction with a short explanation.
+        - If gaps exist, suggest an open-ended follow-up direction with a short explanation and justification.
         - If no gaps remain and the topic is well-covered, recommend moving to the next question.
-        - Limit analysis to 15 words.
+        - Limit analysis to 20 words.
 
         Summary must reflect new, relevant information only.
         Information gap analysis must align with protocol, target question, and existing information.
