@@ -562,7 +562,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const handleGetFollowUp = () => {
         getTaskResponse(getNextStepPrompt(), "follow-up");
         console.log("(AI TASK: follow-up) sent");
-        // addTranscriptAIAskEvent("follow-up");
     }
 
     const handleRephrase = (question_id: number, question: string) => {
