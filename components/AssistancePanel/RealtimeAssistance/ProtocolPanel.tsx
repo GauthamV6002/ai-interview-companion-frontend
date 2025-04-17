@@ -12,16 +12,16 @@ type Props = {
 
 const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode }: Props) => {
     return (
-        <div className="h-full flex flex-col gap-2 overflow-y-scroll">
+        <div className="h-full flex flex-col gap-2 overflow-y-scroll pr-2">
             {/* Completed label */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 pl-2">
                 <div className="w-16 flex items-center justify-center">
                     <p className="text-xs text-white/60 whitespace-nowrap">Completed</p>
                 </div>
             </div>
 
             {sessionProtocol.map((question, q_index) => (
-                <div key={q_index} className="flex gap-2">
+                <div key={q_index} className="flex gap-2 pl-2">
                     {/* Checkbox column */}
                     <div className="w-16 flex items-center justify-center">
                         <Checkbox 
@@ -30,7 +30,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                     </div>
 
                     {/* Question block */}
-                    <div className="relative flex-1">
+                    <div className="relative flex-1 pr-2">
                         {/* Current Question indicator */}
                         {q_index === selectedQuestion && (
                             <div className="absolute -top-3 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
