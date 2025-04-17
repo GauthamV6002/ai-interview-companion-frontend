@@ -61,6 +61,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const [modelResponses, setModelResponses] = useState<ModelResponse[]>([]);
     const [responseInProgress, setResponseInProgress] = useState(false);
     const [responseInProgressId, setResponseInProgressId] = useState<string | null>(null);
+    const analysisQuestionIndexRef = useRef<number | null>(null);
 
 
     // Audio recording references
@@ -425,18 +426,23 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     try {
                         const analysisResponse = JSON.parse(responseString);
                         
-                        // Update the sessionProtocol with the analysis feedback for the selected question
+                        // Use the stored question index instead of current selectedQuestion
+                        const targetQuestionIndex = analysisQuestionIndexRef.current;
+                        if (targetQuestionIndex === null) {
+                            console.error("No question index stored for analysis response");
+                            return;
+                        }
+                        
+                        // Update the sessionProtocol with the analysis feedback for the stored question index
                         setSessionProtocol(prev => 
                             prev.map((q, index) => 
-                                index === selectedQuestion 
+                                index === targetQuestionIndex 
                                     ? { 
                                         ...q, 
                                         feedback: {
-                                            // If there's existing feedback, merge the summaries, otherwise use the new one
                                             summary: q.feedback 
                                                 ? [...q.feedback.summary, ...analysisResponse.summary]
                                                 : analysisResponse.summary,
-                                            // Always use the new information gap
                                             informationGap: analysisResponse.informationGap
                                         } 
                                     } 
@@ -444,7 +450,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                             )
                         );
                         
-                        console.log("Analysis response added to question:", selectedQuestion);
+                        console.log("Analysis response added to question:", targetQuestionIndex);
+                        // Reset the stored index
+                        analysisQuestionIndexRef.current = null;
                     } catch (err) {
                         console.error("Error parsing analysis response:", err);
                     }
@@ -544,6 +552,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     }
 
     const handleGetAnalysis = () => {
+        // Store the current question index
+        analysisQuestionIndexRef.current = selectedQuestion;
+        
         // Get the current question text
         const currentQuestion = sessionProtocol[selectedQuestion].question;
         

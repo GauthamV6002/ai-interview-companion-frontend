@@ -20,8 +20,8 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                         style={q_index === selectedQuestion ? { backgroundColor: "rgba(0, 255, 0, 0.1)", color: "lightgreen" } : {}}
                         key={q_index}
                         onClick={() => {
-                            console.log("Question clicked - q_index:", q_index, "selectedQuestion:", selectedQuestion);
                             setSelectedQuestion(q_index);
+                            console.log("Question clicked - q_index:", q_index, "selectedQuestion:", selectedQuestion);
                         }}
                     >
                         <div className="flex flex-row justify-start items-center gap-2">
