@@ -16,7 +16,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
             {/* Completed label */}
             <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 flex items-center justify-center">
-                    <p className="text-xs text-white/60">Completed</p>
+                    <p className="text-xs text-white/60 whitespace-nowrap">Completed</p>
                 </div>
             </div>
 
