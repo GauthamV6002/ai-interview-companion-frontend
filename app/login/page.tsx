@@ -99,10 +99,10 @@ const page = (props: Props) => {
 							<SelectValue placeholder="AI Assistance Mode" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="interactive">A. AI-Assisted Mode</SelectItem>
-							<SelectItem value="none">B. No AI Mode</SelectItem>
-							{/* <SelectItem value="none">3. No AI Assistance</SelectItem>
-							<SelectItem value="full">4. Full AI Assistance (Not Implemented)</SelectItem>
+							<SelectItem value="none">A. No AI Mode</SelectItem>
+							<SelectItem value="interactive">B. AI Summary Mode</SelectItem>
+							<SelectItem value="responsive">C. AI Suggestion Mode</SelectItem>
+							{/* <SelectItem value="full">4. Full AI Assistance (Not Implemented)</SelectItem>
 							<SelectItem value="post">5. Post Interview Assistance (Not Implemented)</SelectItem> */}
 						</SelectContent>
 					</Select>

@@ -13,22 +13,47 @@ type Props = {
 const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode }: Props) => {
     return (
         <div className="h-full flex flex-col gap-2 overflow-y-scroll">
-            {
-                sessionProtocol.map((question, q_index) => (
+            {/* Completed label */}
+            <div className="flex items-center gap-2 mb-2">
+                <div className="w-6"></div> {/* Spacer for checkbox column */}
+                <p className="text-xs text-white/60">Completed</p>
+            </div>
+
+            {sessionProtocol.map((question, q_index) => (
+                <div key={q_index} className="flex gap-2">
+                    {/* Checkbox column */}
+                    <div className="flex flex-col items-center w-6">
+                        <Checkbox 
+                            className='size-6 mt-1' 
+                            style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} 
+                        />
+                    </div>
+
+                    {/* Question block */}
                     <Card
-                        className={`p-3 flex flex-col justify-start gap-2 hover:cursor-pointer`}
-                        style={q_index === selectedQuestion ? { backgroundColor: "rgba(0, 255, 0, 0.1)", color: "lightgreen" } : {}}
-                        key={q_index}
+                        className={`flex-1 p-3 flex flex-col justify-start gap-2 hover:cursor-pointer transition-all duration-200 ${
+                            q_index === selectedQuestion 
+                                ? "border-2 border-green-500 bg-green-500/10" 
+                                : "border border-gray-700"
+                        }`}
                         onClick={() => {
                             setSelectedQuestion(q_index);
                             console.log("Question clicked - q_index:", q_index, "selectedQuestion:", selectedQuestion);
                         }}
                     >
-                        <div className="flex flex-row justify-start items-center gap-2">
-                            <Checkbox className='size-6 mt-1' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} />
-                            <div className="ml-1">
-                                <p className='text-white/90' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}}>{question.question}</p>
+                        {/* Current Question indicator */}
+                        {q_index === selectedQuestion && (
+                            <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                                Current Question
                             </div>
+                        )}
+
+                        <div className="ml-1">
+                            <p className={`text-white/90 ${
+                                q_index === selectedQuestion ? "text-green-400 font-medium" : ""
+                            }`}>
+                                {question.question}
+                            </p>
                         </div>
 
                         {/* Display feedback if available */}
@@ -43,14 +68,14 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                     </ul>
                                 </div>
                                 <div className="mt-2">
-                                    <p className="text-sm font-semibold text-blue-400">Suggestion:</p>
+                                    <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
                                     <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
                                 </div>
                             </div>
                         )}
                     </Card>
-                ))
-            }
+                </div>
+            ))}
         </div>
     )
 }
