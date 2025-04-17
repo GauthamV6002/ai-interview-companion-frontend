@@ -425,7 +425,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     try {
                         const analysisResponse = JSON.parse(responseString);
                         
-                        // Update the sessionProtocol with the analysis feedback
+                        // Update the sessionProtocol with the analysis feedback for the selected question
                         setSessionProtocol(prev => 
                             prev.map((q, index) => 
                                 index === selectedQuestion 
