@@ -34,9 +34,9 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                 <div className="mb-1">
                                     <p className="text-sm font-semibold text-blue-400">Summary:</p>
                                     <ul className="list-disc pl-4 text-sm text-white/80">
-                                        {question.feedback.summary.map((item, index) => (
+                                        {question.feedback.summary.map((item, index, array) => (
                                             <React.Fragment key={index}>
-                                                {index > 0 && index === question.feedback.summary.length - 1 && (
+                                                {index > 0 && index === array.length - 1 && (
                                                     <div className="my-2 border-t border-gray-600"></div>
                                                 )}
                                                 <li>{item}</li>
