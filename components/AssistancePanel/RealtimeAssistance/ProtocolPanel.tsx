@@ -40,7 +40,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                         <Card
                             className={`p-3 flex flex-col justify-start gap-2 hover:cursor-pointer transition-all duration-200 ${
                                 q_index === selectedQuestion 
-                                    ? "border-2 border-green-500 bg-green-500/20" 
+                                    ? "border-[3px] border-green-500 bg-green-500/30 shadow-lg shadow-green-500/20" 
                                     : "border border-gray-700"
                             }`}
                             onClick={() => {
