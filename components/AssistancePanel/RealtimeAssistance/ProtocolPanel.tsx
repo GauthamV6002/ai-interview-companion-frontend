@@ -12,7 +12,7 @@ type Props = {
 
 const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode }: Props) => {
     return (
-        <div className="h-full flex flex-col gap-2 overflow-y-scroll pr-2">
+        <div className="h-full flex flex-col gap-2 box-border overflow-y-scroll pr-2">
             {/* Completed label */}
             <div className="flex items-center gap-2 mb-2 pl-2">
                 <div className="w-16 flex items-center justify-center">
