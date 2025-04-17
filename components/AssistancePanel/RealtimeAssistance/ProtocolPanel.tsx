@@ -15,16 +15,17 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
         <div className="h-full flex flex-col gap-2 overflow-y-scroll">
             {/* Completed label */}
             <div className="flex items-center gap-2 mb-2">
-                <div className="w-6"></div> {/* Spacer for checkbox column */}
-                <p className="text-xs text-white/60">Completed</p>
+                <div className="w-6 flex items-center justify-center">
+                    <p className="text-xs text-white/60">Completed</p>
+                </div>
             </div>
 
             {sessionProtocol.map((question, q_index) => (
                 <div key={q_index} className="flex gap-2">
                     {/* Checkbox column */}
-                    <div className="flex flex-col items-center w-6">
+                    <div className="w-6 flex items-center justify-center">
                         <Checkbox 
-                            className='size-6 mt-1' 
+                            className='size-6' 
                         />
                     </div>
 
