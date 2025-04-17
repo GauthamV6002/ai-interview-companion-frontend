@@ -552,6 +552,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             ? sessionProtocol[selectedQuestion].feedback.summary.join(", ") 
             : "";
         
+        console.log("Give Me Analysis clicked - selectedQuestion:", selectedQuestion, "currentQuestion:", currentQuestion);
+        
         // Use the analysis prompt to get feedback focused on the current question
         getTaskResponse(getAIAnalysisPrompt(protocolString, currentQuestion, currentInformation), "analysis");
         

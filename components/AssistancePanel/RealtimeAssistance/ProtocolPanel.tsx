@@ -19,7 +19,10 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                         className={`p-3 flex flex-col justify-start gap-2 hover:cursor-pointer`}
                         style={q_index === selectedQuestion ? { backgroundColor: "rgba(0, 255, 0, 0.1)", color: "lightgreen" } : {}}
                         key={q_index}
-                        onClick={() => setSelectedQuestion(q_index)}
+                        onClick={() => {
+                            console.log("Question clicked - q_index:", q_index, "selectedQuestion:", selectedQuestion);
+                            setSelectedQuestion(q_index);
+                        }}
                     >
                         <div className="flex flex-row justify-start items-center gap-2">
                             <Checkbox className='size-6 mt-1' style={q_index === selectedQuestion ? { color: "lightgreen" } : {}} />
