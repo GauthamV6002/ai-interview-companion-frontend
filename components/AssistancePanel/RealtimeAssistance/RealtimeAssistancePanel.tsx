@@ -546,9 +546,22 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
 
     const handleGetFeedback = () => {
-        getTaskResponse(getAIFeedbackPrompt(), "feedback");
-        console.log("(AI TASK: feedback) sent");
-        // addTranscriptAIAskEvent("feedback");
+        // Store the current question index
+        analysisQuestionIndexRef.current = selectedQuestion;
+        
+        // Get the current question text
+        const currentQuestion = sessionProtocol[selectedQuestion].question;
+        
+        // Get existing feedback summary if available, otherwise empty string
+        const currentInformation = sessionProtocol[selectedQuestion].feedback 
+            ? sessionProtocol[selectedQuestion].feedback.summary.join(", ") 
+            : "";
+          
+        // Use the feedback prompt to get feedback focused on the current question
+        getTaskResponse(getAIFeedbackPrompt(protocolString, currentQuestion, currentInformation), "analysis");
+        
+        console.log("(AI TASK: feedback) sent for question:", currentQuestion);
+        addTranscriptAIAskEvent("feedback");
     }
 
     const handleGetAnalysis = () => {
