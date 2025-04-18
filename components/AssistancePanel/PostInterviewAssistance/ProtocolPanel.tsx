@@ -27,22 +27,13 @@ const ProtocolPanel = (props: Props) => {
                         protocol.map((question, q_index) => (
                             <AccordionItem className='border-b-white/10' value={`item-${q_index}`} key={q_index}>
                                 <AccordionTrigger>{question.question}</AccordionTrigger>
-                                <AccordionContent className=''>
-                                    {
-                                        question.followUps.map((followUp, f_index) => (
-                                            <div key={f_index} className='flex gap-2'>
-                                                <div className='w-[2px] h-auto bg-white'></div>
-                                                <Textarea className='h-24' defaultValue={followUp} />
-                                            </div>
-                                        ))
-                                    }
+                                <AccordionContent>
+                                    <Textarea className='h-24' defaultValue={question.question} />
                                 </AccordionContent>
                             </AccordionItem>
                         ))
-
                     }
                 </Accordion>
-
             </CardContent>
         </Card>
     )
