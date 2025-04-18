@@ -1,7 +1,8 @@
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Protocol } from '@/types/Protocol';
-import React from 'react'
+import React, { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 type Props = {
     sessionProtocol: Protocol;
@@ -11,6 +12,24 @@ type Props = {
 }
 
 const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode }: Props) => {
+    const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
+
+    const toggleQuestion = (index: number) => {
+        setExpandedQuestions(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(index)) {
+                newSet.delete(index);
+            } else {
+                newSet.add(index);
+            }
+            return newSet;
+        });
+    };
+
+    const isQuestionExpanded = (index: number) => {
+        return expandedQuestions.has(index);
+    };
+
     return (
         <div className="h-full flex flex-col gap-2 box-border overflow-y-scroll pr-2">
             {/* Completed label */}
@@ -46,54 +65,92 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                             }`}
                             onClick={() => {
                                 setSelectedQuestion(q_index);
-                                console.log("Question clicked - q_index:", q_index, "selectedQuestion:", selectedQuestion);
+                                // Use setTimeout to log after state update
+                                setTimeout(() => {
+                                    console.log("Question clicked - q_index:", q_index, "new selectedQuestion:", q_index);
+                                }, 0);
                             }}
                         >
-                            <div className="ml-1">
-                                <p className={`${
-                                    q_index === selectedQuestion 
-                                        ? "text-green-400 font-medium" 
-                                        : "text-white/90"
-                                }`}>
-                                    {question.question}
-                                </p>
+                            <div className="flex justify-between items-center">
+                                <div className="ml-1 flex-1">
+                                    <p className={`${
+                                        q_index === selectedQuestion 
+                                            ? "text-green-400 font-medium" 
+                                            : "text-white/90"
+                                    }`}>
+                                        {question.question}
+                                    </p>
+                                </div>
+                                {question.feedback && (
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleQuestion(q_index);
+                                        }}
+                                        className="text-white/60 hover:text-white/90 transition-colors"
+                                    >
+                                        {isQuestionExpanded(q_index) ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                    </button>
+                                )}
                             </div>
 
-                            {/* Display feedback if available */}
-                            <div className="flex flex-col gap-2">
-                                {configurationMode === 'interactive' && question.feedback && (
-                                    <div className="flex flex-col gap-2">
-                                        <div className="text-sm font-medium">Summary</div>
-                                        <ul className="list-disc pl-4 text-sm">
-                                            {question.feedback.summary.map((item, index) => (
-                                                <li key={index}>{item}</li>
-                                            ))}
-                                        </ul>
-                                        {question.feedback.informationGap && (
-                                            <div className="flex flex-col gap-2">
-                                                <div className="text-sm font-medium">Information Gap</div>
-                                                <div className="text-sm">{question.feedback.informationGap}</div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                {configurationMode === 'responsive' && selectedQuestion === q_index && question.feedback && (
-                                    <div className="flex flex-col gap-2">
-                                        {question.feedback.informationGap && (
-                                            <div className="flex flex-col gap-2">
-                                                <div className="text-sm font-medium">Information Gap</div>
-                                                <div className="text-sm">{question.feedback.informationGap}</div>
-                                            </div>
-                                        )}
-                                        {question.feedback.followUp && (
-                                            <div className="flex flex-col gap-2">
-                                                <div className="text-sm font-medium">Follow-up Suggestion</div>
-                                                <div className="text-sm">{question.feedback.followUp}</div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                            {/* Display feedback if available and expanded */}
+                            {question.feedback && isQuestionExpanded(q_index) && (
+                                <div className="flex flex-col gap-2 mt-2">
+                                    {configurationMode === 'interactive' && (
+                                        <div className="flex flex-col gap-2">
+                                            {question.feedback.summary.length > 0 && (
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="text-sm font-medium text-blue-400">Summary</div>
+                                                    <ul className="list-disc pl-4 text-sm text-white/90">
+                                                        {question.feedback.summary.map((item, index) => (
+                                                            <li key={index}>{item}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {question.feedback.informationGap && (
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="text-sm font-medium text-purple-400">Information Gap</div>
+                                                    {Array.isArray(question.feedback.informationGap) ? (
+                                                        <ul className="list-disc pl-4 text-sm text-white/90">
+                                                            {question.feedback.informationGap.map((item, index) => (
+                                                                <li key={index}>{item}</li>
+                                                            ))}
+                                                        </ul>
+                                                    ) : (
+                                                        <div className="text-sm text-white/90">{question.feedback.informationGap}</div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {configurationMode === 'responsive' && (
+                                        <div className="flex flex-col gap-2">
+                                            {question.feedback.informationGap && (
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="text-sm font-medium text-purple-400">Information Gap</div>
+                                                    {Array.isArray(question.feedback.informationGap) ? (
+                                                        <ul className="list-disc pl-4 text-sm text-white/90">
+                                                            {question.feedback.informationGap.map((item, index) => (
+                                                                <li key={index}>{item}</li>
+                                                            ))}
+                                                        </ul>
+                                                    ) : (
+                                                        <div className="text-sm text-white/90">{question.feedback.informationGap}</div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {question.feedback.followUp && (
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="text-sm font-medium text-orange-400">Follow-up Suggestion</div>
+                                                    <div className="text-sm text-white/90">{question.feedback.followUp}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </Card>
                     </div>
                 </div>
