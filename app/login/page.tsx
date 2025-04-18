@@ -39,41 +39,22 @@ const page = (props: Props) => {
 	};
 
 	const parseProtocol = (text: string): Protocol => {
-
 		setProtocolString(text);
 
 		const lines = text.split('\n').map((line) => line.trim()).filter((line) => line !== '');
 		const protocol: Protocol = [];
 
-		lines.forEach((line) => {
+		lines.forEach((line, index) => {
 			const mainMatch = line.match(/^(\d+):\s*(.*)/); // Match main questions
-			const followUpMatch = line.match(/^(\d+\.\d+):\s*(.*)/); // Match follow-up questions
 
 			if (mainMatch) {
-				const mainIndex = mainMatch[1];
 				const mainQuestion = mainMatch[2];
 				protocol.push({
-					id: -1,
-					question: mainQuestion,
-					followUps: []
-				})
-				// questionsMap[mainIndex] = { id: mainIndex, question: mainQuestion, followUps: [], issue: true, revision: '' };
-			} else if (followUpMatch) {
-				// console.log(followUpMatch);
-				const mainIndex = Number(followUpMatch[1].split('.')[0]) - 1;
-				const followUpQuestion = followUpMatch[2];
-				console.log(mainIndex);
-				if (protocol[mainIndex]) {
-					protocol[mainIndex].followUps.push(followUpQuestion);
-				}
+					id: index,
+					question: mainQuestion
+				});
 			}
 		});
-
-
-		// add indices
-		protocol.forEach((val, index) => {
-			protocol[index].id = index;
-		})
 
 		console.log(protocol);
 		return protocol;
