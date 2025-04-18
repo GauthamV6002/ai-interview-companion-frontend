@@ -398,6 +398,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
 
         console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
+        console.log('Current selectedQuestion:', selectedQuestion);
+        console.log('Current analysisQuestionIndexRef:', analysisQuestionIndexRef.current);
+        console.log('Current feedbackQuestionIndexRef:', feedbackQuestionIndexRef.current);
 
         try {
             const responseString = data.response.output[0].content[0].text;
@@ -419,6 +422,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     try {
                         const feedbackResponse = JSON.parse(responseString) as FeedbackResponse;
                         const targetQuestionIndex = feedbackQuestionIndexRef.current;
+                        console.log('Processing feedback response for question index:', targetQuestionIndex);
                         if (targetQuestionIndex === null) {
                             console.error("No question index stored for feedback response");
                             return;
@@ -432,9 +436,11 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                             : feedbackResponse.informationGap;
                         
                         // Update the sessionProtocol with the feedback for the stored question index
-                        setSessionProtocol(prev => 
-                            prev.map((q, index) => 
-                                index === targetQuestionIndex 
+                        setSessionProtocol(prev => {
+                            console.log('Updating sessionProtocol for question index:', targetQuestionIndex);
+                            return prev.map((q, index) => {
+                                console.log('Processing question index:', index, 'target index:', targetQuestionIndex);
+                                return index === targetQuestionIndex 
                                     ? { 
                                         ...q, 
                                         feedback: {
@@ -445,9 +451,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                             followUp: feedbackResponse.followUp
                                         } 
                                     } 
-                                    : q
-                            )
-                        );
+                                    : q;
+                            });
+                        });
                         // Reset the stored index
                         feedbackQuestionIndexRef.current = null;
                     } catch (error) {
@@ -459,15 +465,18 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     try {
                         const analysisResponse = JSON.parse(responseString) as AnalysisResponse;
                         const targetQuestionIndex = analysisQuestionIndexRef.current;
+                        console.log('Processing analysis response for question index:', targetQuestionIndex);
                         if (targetQuestionIndex === null) {
                             console.error("No question index stored for analysis response");
                             return;
                         }
                         
                         // Update the sessionProtocol with the analysis feedback for the stored question index
-                        setSessionProtocol(prev => 
-                            prev.map((q, index) => 
-                                index === targetQuestionIndex 
+                        setSessionProtocol(prev => {
+                            console.log('Updating sessionProtocol for question index:', targetQuestionIndex);
+                            return prev.map((q, index) => {
+                                console.log('Processing question index:', index, 'target index:', targetQuestionIndex);
+                                return index === targetQuestionIndex 
                                     ? { 
                                         ...q, 
                                         feedback: {
@@ -478,9 +487,9 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                             followUp: analysisResponse.followUp
                                         } 
                                     } 
-                                    : q
-                            )
-                        );
+                                    : q;
+                            });
+                        });
                         
                         console.log("Analysis response added to question:", targetQuestionIndex);
                         // Reset the stored index

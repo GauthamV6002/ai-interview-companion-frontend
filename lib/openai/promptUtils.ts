@@ -95,8 +95,8 @@ const getAIFeedbackPrompt = (protocolString: string, currentQuestion: string, cu
 
         During the conversation, for each new message:
         - If the speaker has not finished their message, respond only with "none".
-        - If the most recent message is from the interviewer, respond only with "none".
         - If the most recent message is not part of the interview conversation, respond only with "none".
+        - If the most recent message is from the interviewer asking a question to the interviewee, respond only with "none".
         - If the most recent message is the interviewee responding to the last question asked by the interviewer, provide feedback in the following JSON format:
 
         1. Summary
