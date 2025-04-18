@@ -60,7 +60,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                             </div>
 
                             {/* Display feedback if available */}
-                            {question.feedback && (
+                            {question.feedback && configurationMode !== 'none' && (
                                 <div className="mt-2 p-2 bg-gray-800 rounded-md">
                                     {configurationMode === 'interactive' ? (
                                         <>
@@ -78,10 +78,16 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="mb-2">
-                                            <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
-                                            <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
-                                        </div>
+                                        <>
+                                            <div className="mb-2">
+                                                <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
+                                                <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
+                                            </div>
+                                            <div className="mt-2">
+                                                <p className="text-sm font-semibold text-blue-400">Follow-up Suggestion:</p>
+                                                <p className="text-sm text-white/80">{question.feedback.followUp}</p>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                             )}
