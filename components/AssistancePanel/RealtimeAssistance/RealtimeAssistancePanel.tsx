@@ -432,7 +432,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                             summary: q.feedback 
                                                 ? [...q.feedback.summary, ...feedbackResponse.summary]
                                                 : feedbackResponse.summary,
-                                            informationGap: feedbackResponse.informationGap
+                                            informationGap: feedbackResponse.informationGap,
+                                            followUp: feedbackResponse.followUp
                                         } 
                                     } 
                                     : q
@@ -464,7 +465,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                             summary: q.feedback 
                                                 ? [...q.feedback.summary, ...analysisResponse.summary]
                                                 : analysisResponse.summary,
-                                            informationGap: analysisResponse.informationGap
+                                            informationGap: analysisResponse.informationGap,
+                                            followUp: analysisResponse.followUp
                                         } 
                                     } 
                                     : q
