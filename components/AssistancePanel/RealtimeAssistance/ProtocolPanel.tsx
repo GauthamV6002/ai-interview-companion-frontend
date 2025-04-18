@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Protocol } from '@/types/Protocol';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 type Props = {
@@ -14,13 +14,22 @@ type Props = {
 const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion, configurationMode }: Props) => {
     const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set());
 
+    // Automatically expand questions with content
+    useEffect(() => {
+        const newExpandedQuestions = new Set<number>();
+        sessionProtocol.forEach((question, index) => {
+            if (question.feedback) {
+                newExpandedQuestions.add(index);
+            }
+        });
+        setExpandedQuestions(newExpandedQuestions);
+    }, [sessionProtocol]);
+
     const toggleQuestion = (index: number) => {
         setExpandedQuestions(prev => {
             const newSet = new Set(prev);
             if (newSet.has(index)) {
                 newSet.delete(index);
-            } else {
-                newSet.add(index);
             }
             return newSet;
         });
@@ -81,7 +90,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                         {question.question}
                                     </p>
                                 </div>
-                                {question.feedback && (
+                                {question.feedback && isQuestionExpanded(q_index) && (
                                     <button 
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -89,7 +98,7 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                         }}
                                         className="text-white/60 hover:text-white/90 transition-colors"
                                     >
-                                        {isQuestionExpanded(q_index) ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                        <ChevronUp size={20} />
                                     </button>
                                 )}
                             </div>

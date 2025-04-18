@@ -425,16 +425,24 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 return;
             }
 
+            // Get the target question index based on the task type
+            const targetQuestionIndex = data.response.metadata?.task === "feedback" 
+                ? feedbackQuestionIndexRef.current 
+                : analysisQuestionIndexRef.current;
+
+            if (targetQuestionIndex === null) {
+                console.error("No question index stored for response");
+                return;
+            }
+
+            // Update selectedQuestion to match the target question
+            setSelectedQuestion(targetQuestionIndex);
+
             switch (data.response.metadata?.task) {
                 case "feedback":
                     try {
                         const feedbackResponse = JSON.parse(responseString) as FeedbackResponse;
-                        const targetQuestionIndex = feedbackQuestionIndexRef.current;
                         console.log('Processing feedback response for question index:', targetQuestionIndex);
-                        if (targetQuestionIndex === null) {
-                            console.error("No question index stored for feedback response");
-                            return;
-                        }
 
                         // Handle empty information gap
                         const informationGap = !feedbackResponse.informationGap || feedbackResponse.informationGap.length === 0
@@ -474,12 +482,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 case "analysis":
                     try {
                         const analysisResponse = JSON.parse(responseString) as AnalysisResponse;
-                        const targetQuestionIndex = analysisQuestionIndexRef.current;
                         console.log('Processing analysis response for question index:', targetQuestionIndex);
-                        if (targetQuestionIndex === null) {
-                            console.error("No question index stored for analysis response");
-                            return;
-                        }
                         
                         // Handle empty information gap for analysis
                         const analysisInformationGap = !analysisResponse.informationGap || analysisResponse.informationGap.length === 0
