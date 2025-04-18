@@ -431,8 +431,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                         // Handle empty information gap
                         const informationGap = feedbackResponse.informationGap.length === 0
                             ? configurationMode === "interactive"
-                                ? "No information gap identified, proceed to the next protocol questions"
-                                : "No information gap identified"
+                                ? ["No information gap identified, proceed to the next protocol questions"]
+                                : ["No information gap identified"]
                             : feedbackResponse.informationGap;
                         
                         // Update the sessionProtocol with the feedback for the stored question index
