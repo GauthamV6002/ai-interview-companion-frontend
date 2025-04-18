@@ -437,7 +437,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                         }
 
                         // Handle empty information gap
-                        const informationGap = feedbackResponse.informationGap.length === 0
+                        const informationGap = !feedbackResponse.informationGap || feedbackResponse.informationGap.length === 0
                             ? configurationMode === "interactive"
                                 ? ["No information gap identified, proceed to the next protocol questions"]
                                 : ["No information gap identified"]
