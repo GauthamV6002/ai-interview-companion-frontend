@@ -6,9 +6,9 @@
 // }
 
 type FeedbackResponse = {
-    summary: string[];
-    informationGap: string[];
-    followUp: string;
+    summary?: string[];
+    informationGap?: string | string[];
+    followUp?: string;
 }
 
 type FollowUpResponse = string;
@@ -16,9 +16,9 @@ type FollowUpResponse = string;
 type RephraseResponse = string;
 
 type AnalysisResponse = {
-  summary: string[];
-  informationGap: string[];
-  followUp: string;
+    summary?: string[];
+    informationGap?: string | string[];
+    followUp?: string;
 };
 
 type TaskResponse = FeedbackResponse | FollowUpResponse | RephraseResponse | AnalysisResponse;

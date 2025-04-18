@@ -38,6 +38,14 @@ const formatTime = (seconds: number) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
+// Add type definition for TaskResponse
+type TaskResponse = {
+    type: "feedback" | "analysis" | "follow-up" | "rephrase";
+    summary?: string[];
+    informationGap?: string | string[];
+    followUp?: string;
+}
+
 const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStream, onShowInstructions }: Props) => {
 
     const { protocol, configurationMode, setConfigurationMode, protocolString } = useAuth();
@@ -389,63 +397,141 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }
     }
 
-    const handleResponseDone = (response: string) => {
-        if (!responseInProgress) return;
-        setResponseInProgress(false);
+    const handleResponseDone = (data: any) => {
+        if (!data.response.output[0]) {
+            setResponseInProgress(false);
+            setResponseInProgressId(null);
+            console.log('No response output found, reverting');
+            return;
+        }
+
+        console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
+        console.log('Current selectedQuestion:', selectedQuestion);
+        console.log('Current analysisQuestionIndexRef:', analysisQuestionIndexRef.current);
+        console.log('Current feedbackQuestionIndexRef:', feedbackQuestionIndexRef.current);
 
         try {
-            const parsedResponse = JSON.parse(response) as TaskResponse;
-            console.log("Response received:", parsedResponse);
+            const responseString = data.response.output[0].content[0].text;
+            setTimeout(() => { setResponseInProgress(false) }, 100);
 
-            if (parsedResponse.type === "feedback") {
-                // Use the stored question index for feedback
-                const questionIndex = feedbackQuestionIndexRef.current;
-                console.log("Processing feedback for question:", questionIndex);
-                if (questionIndex !== null) {
-                    setSessionProtocol(prev => {
-                        const updated = [...prev];
-                        const q = updated[questionIndex];
-                        if (q.feedback) {
-                            q.feedback = {
-                                ...q.feedback,
-                                summary: [...q.feedback.summary, ...parsedResponse.summary],
-                                informationGap: parsedResponse.informationGap
-                            };
-                        } else {
-                            q.feedback = {
-                                summary: parsedResponse.summary,
-                                informationGap: parsedResponse.informationGap
-                            };
-                        }
-                        return updated;
-                    });
-                }
-            } else if (parsedResponse.type === "analysis") {
-                // Use the stored question index for analysis
-                const questionIndex = analysisQuestionIndexRef.current;
-                console.log("Processing analysis for question:", questionIndex);
-                if (questionIndex !== null) {
-                    setSessionProtocol(prev => {
-                        const updated = [...prev];
-                        const q = updated[questionIndex];
-                        if (q.feedback) {
-                            q.feedback = {
-                                ...q.feedback,
-                                summary: [...q.feedback.summary, ...parsedResponse.summary],
-                                informationGap: parsedResponse.informationGap
-                            };
-                        } else {
-                            q.feedback = {
-                                summary: parsedResponse.summary,
-                                informationGap: parsedResponse.informationGap
-                            };
-                        }
-                        return updated;
-                    });
-                }
+            if (!data.response.metadata) {
+                console.log("ERROR: No metadata found in response");
+                return;
             }
-        } catch (error) {
-            console.error("Error parsing response:", error);
+
+            // Skip if response is "none" for any task type
+            if (responseString.toLowerCase().includes("none")) {
+                console.log("Response is 'none', skipping");
+                return;
+            }
+
+            switch (data.response.metadata?.task) {
+                case "feedback":
+                    try {
+                        const feedbackResponse = JSON.parse(responseString) as FeedbackResponse;
+                        const targetQuestionIndex = feedbackQuestionIndexRef.current;
+                        console.log('Processing feedback response for question index:', targetQuestionIndex);
+                        if (targetQuestionIndex === null) {
+                            console.error("No question index stored for feedback response");
+                            return;
+                        }
+
+                        // Handle empty information gap
+                        const informationGap = feedbackResponse.informationGap.length === 0
+                            ? configurationMode === "interactive"
+                                ? ["No information gap identified, proceed to the next protocol questions"]
+                                : ["No information gap identified"]
+                            : feedbackResponse.informationGap;
+                        
+                        // Update the sessionProtocol with the feedback for the stored question index
+                        setSessionProtocol(prev => {
+                            console.log('Updating sessionProtocol for question index:', targetQuestionIndex);
+                            return prev.map((q, index) => {
+                                console.log('Processing question index:', index, 'target index:', targetQuestionIndex);
+                                return index === targetQuestionIndex 
+                                    ? { 
+                                        ...q, 
+                                        feedback: {
+                                            summary: q.feedback 
+                                                ? [...q.feedback.summary, ...feedbackResponse.summary]
+                                                : feedbackResponse.summary,
+                                            informationGap: informationGap,
+                                            followUp: feedbackResponse.followUp
+                                        } 
+                                    } 
+                                    : q;
+                            });
+                        });
+                        // Reset the stored index
+                        feedbackQuestionIndexRef.current = null;
+                    } catch (error) {
+                        console.error("Error parsing feedback response:", error);
+                    }
+                    break;
+
+                case "analysis":
+                    try {
+                        const analysisResponse = JSON.parse(responseString) as AnalysisResponse;
+                        const targetQuestionIndex = analysisQuestionIndexRef.current;
+                        console.log('Processing analysis response for question index:', targetQuestionIndex);
+                        if (targetQuestionIndex === null) {
+                            console.error("No question index stored for analysis response");
+                            return;
+                        }
+                        
+                        // Update the sessionProtocol with the analysis feedback for the stored question index
+                        setSessionProtocol(prev => {
+                            console.log('Updating sessionProtocol for question index:', targetQuestionIndex);
+                            return prev.map((q, index) => {
+                                console.log('Processing question index:', index, 'target index:', targetQuestionIndex);
+                                return index === targetQuestionIndex 
+                                    ? { 
+                                        ...q, 
+                                        feedback: {
+                                            summary: q.feedback 
+                                                ? [...q.feedback.summary, ...analysisResponse.summary]
+                                                : analysisResponse.summary,
+                                            informationGap: analysisResponse.informationGap,
+                                            followUp: analysisResponse.followUp
+                                        } 
+                                    } 
+                                    : q;
+                            });
+                        });
+                        
+                        console.log("Analysis response added to question:", targetQuestionIndex);
+                        // Reset the stored index
+                        analysisQuestionIndexRef.current = null;
+                    } catch (err) {
+                        console.error("Error parsing analysis response:", err);
+                    }
+                    break;
+
+                case "follow-up":
+                    setModelResponses(prev => [...prev, {
+                        task: "follow-up",
+                        response: responseString as FollowUpResponse,
+                    }]);
+                    break;
+
+                case "rephrase":
+                    setModelResponses(prev => [...prev, {
+                        task: "rephrase",
+                        response: responseString as RephraseResponse,
+                    }]);
+                    break;
+
+                default:
+                    console.log("Unknown task type: ", data.response.metadata?.task);
+                    break;
+            }
+
+            addTranscriptAIResponseEvent(data.response.metadata?.task, responseString);
+
+        } catch (err) {
+            // Catches edge cases like cancellations due to interuptions
+            console.log("ERROR: Parsing model response failed. Recieved:", data.response.output[0].content[0].text);
+            console.log(err)
         }
     };
 
@@ -571,7 +657,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
                 if (data.type === "response.done") {
                     console.log('Response received, current selectedQuestion:', selectedQuestion);
-                    handleResponseDone(data.response.output[0].content[0].text);
+                    handleResponseDone(data);
                 }
 
                 if (data.type === "input_audio_buffer.committed") {
