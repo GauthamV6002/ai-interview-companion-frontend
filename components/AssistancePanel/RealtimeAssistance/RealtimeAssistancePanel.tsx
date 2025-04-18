@@ -415,12 +415,25 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             switch (data.response.metadata?.task) {
                 case "feedback":
                     try {
+                        // Skip if response is "none"
+                        if (responseString.toLowerCase().includes("none")) {
+                            console.log("Feedback response is 'none', skipping");
+                            return;
+                        }
+
                         const feedbackResponse = JSON.parse(responseString) as FeedbackResponse;
                         const targetQuestionIndex = analysisQuestionIndexRef.current;
                         if (targetQuestionIndex === null) {
                             console.error("No question index stored for feedback response");
                             return;
                         }
+
+                        // Handle empty information gap
+                        const informationGap = feedbackResponse.informationGap.length === 0
+                            ? configurationMode === "interactive"
+                                ? "No information gap identified, proceed to the next protocol questions"
+                                : "No information gap identified"
+                            : feedbackResponse.informationGap;
                         
                         // Update the sessionProtocol with the feedback for the stored question index
                         setSessionProtocol(prev => 
@@ -432,7 +445,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                             summary: q.feedback 
                                                 ? [...q.feedback.summary, ...feedbackResponse.summary]
                                                 : feedbackResponse.summary,
-                                            informationGap: feedbackResponse.informationGap,
+                                            informationGap: informationGap,
                                             followUp: feedbackResponse.followUp
                                         } 
                                     } 

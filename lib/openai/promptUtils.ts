@@ -75,7 +75,7 @@ const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, cu
             "keyword/phrase 1",
             "keyword/phrase 2"
         ], // An array of up to 2 strings. Use fewer if fewer information gaps are found.
-        "followUp": string // A ready-to-use follow-up question within 15 words or "Proceed to the next question".
+        "followUp": string // A ready-to-use follow-up question within 15 words or "Proceed to the next protocol question".
         }
 
         Deliver only the JSON response, without comments or rationale.
@@ -130,7 +130,7 @@ const getAIFeedbackPrompt = (protocolString: string, currentQuestion: string, cu
             "keyword/phrase 1",
             "keyword/phrase 2"
         ], // An array of up to 2 strings. Use fewer if fewer information gaps are found.
-        "followUp": string // A ready-to-use follow-up question within 15 words or "Proceed to the next question".
+        "followUp": string // A ready-to-use follow-up question within 15 words or "Proceed to the next protocol question".
         }
 
         Deliver only the JSON response, without comments or rationale.
