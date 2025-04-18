@@ -60,37 +60,40 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                             </div>
 
                             {/* Display feedback if available */}
-                            {question.feedback && configurationMode !== 'none' && (
-                                <div className="mt-2 p-2 bg-gray-800 rounded-md">
-                                    {configurationMode === 'interactive' ? (
-                                        <>
-                                            <div className="mb-1">
-                                                <p className="text-sm font-semibold text-blue-400">Summary:</p>
-                                                <ul className="list-disc pl-4 text-sm text-white/80">
-                                                    {question.feedback.summary.map((item, index) => (
-                                                        <li key={index}>{item}</li>
-                                                    ))}
-                                                </ul>
+                            <div className="flex flex-col gap-2">
+                                {configurationMode === 'interactive' && question.feedback && (
+                                    <div className="flex flex-col gap-2">
+                                        <div className="text-sm font-medium">Summary</div>
+                                        <ul className="list-disc pl-4 text-sm">
+                                            {question.feedback.summary.map((item, index) => (
+                                                <li key={index}>{item}</li>
+                                            ))}
+                                        </ul>
+                                        {question.feedback.informationGap && (
+                                            <div className="flex flex-col gap-2">
+                                                <div className="text-sm font-medium">Information Gap</div>
+                                                <div className="text-sm">{question.feedback.informationGap}</div>
                                             </div>
-                                            <div className="mt-2">
-                                                <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
-                                                <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
+                                        )}
+                                    </div>
+                                )}
+                                {configurationMode === 'responsive' && selectedQuestion === q_index && question.feedback && (
+                                    <div className="flex flex-col gap-2">
+                                        {question.feedback.informationGap && (
+                                            <div className="flex flex-col gap-2">
+                                                <div className="text-sm font-medium">Information Gap</div>
+                                                <div className="text-sm">{question.feedback.informationGap}</div>
                                             </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="mb-2">
-                                                <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
-                                                <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
+                                        )}
+                                        {question.feedback.followUp && (
+                                            <div className="flex flex-col gap-2">
+                                                <div className="text-sm font-medium">Follow-up Suggestion</div>
+                                                <div className="text-sm">{question.feedback.followUp}</div>
                                             </div>
-                                            <div className="mt-2">
-                                                <p className="text-sm font-semibold text-blue-400">Follow-up Suggestion:</p>
-                                                <p className="text-sm text-white/80">{question.feedback.followUp}</p>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </Card>
                     </div>
                 </div>

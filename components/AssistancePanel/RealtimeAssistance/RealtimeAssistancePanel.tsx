@@ -62,6 +62,7 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     const [responseInProgress, setResponseInProgress] = useState(false);
     const [responseInProgressId, setResponseInProgressId] = useState<string | null>(null);
     const analysisQuestionIndexRef = useRef<number | null>(null);
+    const feedbackQuestionIndexRef = useRef<number | null>(null);
 
 
     // Audio recording references
@@ -389,21 +390,16 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     }
 
     const handleResponseDone = (data: any) => {
-
-
         if (!data.response.output[0]) {
             setResponseInProgress(false);
             setResponseInProgressId(null);
             console.log('No response output found, reverting');
-            // if (data.response.metadata?.response_id === responseInProgressId) {
-            // }
             return;
         }
 
         console.log('PARSED RESPONSE', data.response.output[0].content[0].text);
 
         try {
-
             const responseString = data.response.output[0].content[0].text;
             setTimeout(() => { setResponseInProgress(false) }, 100);
 
@@ -412,17 +408,17 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 return;
             }
 
+            // Skip if response is "none" for any task type
+            if (responseString.toLowerCase().includes("none")) {
+                console.log("Response is 'none', skipping");
+                return;
+            }
+
             switch (data.response.metadata?.task) {
                 case "feedback":
                     try {
-                        // Skip if response is "none"
-                        if (responseString.toLowerCase().includes("none")) {
-                            console.log("Feedback response is 'none', skipping");
-                            return;
-                        }
-
                         const feedbackResponse = JSON.parse(responseString) as FeedbackResponse;
-                        const targetQuestionIndex = analysisQuestionIndexRef.current;
+                        const targetQuestionIndex = feedbackQuestionIndexRef.current;
                         if (targetQuestionIndex === null) {
                             console.error("No question index stored for feedback response");
                             return;
@@ -452,6 +448,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                     : q
                             )
                         );
+                        // Reset the stored index
+                        feedbackQuestionIndexRef.current = null;
                     } catch (error) {
                         console.error("Error parsing feedback response:", error);
                     }
@@ -460,8 +458,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 case "analysis":
                     try {
                         const analysisResponse = JSON.parse(responseString) as AnalysisResponse;
-                        
-                        // Use the stored question index instead of current selectedQuestion
                         const targetQuestionIndex = analysisQuestionIndexRef.current;
                         if (targetQuestionIndex === null) {
                             console.error("No question index stored for analysis response");
@@ -582,8 +578,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
 
     const handleGetFeedback = () => {
-        // Store the current question index
-        analysisQuestionIndexRef.current = selectedQuestion;
+        // Store the current question index for feedback
+        feedbackQuestionIndexRef.current = selectedQuestion;
         
         // Get the current question text
         const currentQuestion = sessionProtocol[selectedQuestion].question;
@@ -594,14 +590,14 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
             : "";
           
         // Use the feedback prompt to get feedback focused on the current question
-        getTaskResponse(getAIFeedbackPrompt(protocolString, currentQuestion, currentInformation), "analysis");
+        getTaskResponse(getAIFeedbackPrompt(protocolString, currentQuestion, currentInformation), "feedback");
         
         console.log("(AI TASK: feedback) sent for question:", currentQuestion);
         addTranscriptAIAskEvent("feedback");
     }
 
     const handleGetAnalysis = () => {
-        // Store the current question index
+        // Store the current question index for analysis
         analysisQuestionIndexRef.current = selectedQuestion;
         
         // Get the current question text
