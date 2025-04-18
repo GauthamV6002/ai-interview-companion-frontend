@@ -435,8 +435,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 return;
             }
 
-            // Update selectedQuestion to match the target question
-            setSelectedQuestion(targetQuestionIndex);
+            // Remove the automatic selectedQuestion update
+            // setSelectedQuestion(targetQuestionIndex);
 
             switch (data.response.metadata?.task) {
                 case "feedback":
