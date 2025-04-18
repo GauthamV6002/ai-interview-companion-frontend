@@ -1,10 +1,11 @@
 type InterviewQuestion = {
     id: Number;
     question: string;
-    followUps: string[];
+    // followUps: string[];
     feedback?: {
         summary: string[];
-        informationGap: string;
+        informationGap: string[];
+        followUp: string;
     };
 };
 

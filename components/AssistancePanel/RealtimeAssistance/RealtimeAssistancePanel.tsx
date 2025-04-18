@@ -6,7 +6,7 @@ import { Button } from '../../ui/button'
 import { ConfigurationMode, useAuth } from '@/context/AuthContext'
 
 import { Separator } from '@/components/ui/separator'
-import { FeedbackResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
+import { FeedbackResponse, AnalysisResponse, FollowUpResponse, RephraseResponse, TaskType, ModelResponse } from '@/types/TaskResponse'
 import { AIEvent } from '@/types/Transcript'
 import { getSystemPrompt, getAIFeedbackPrompt, getNextStepPrompt, getEvaluationPrompt, getAIAnalysisPrompt } from '../../../lib/openai/promptUtils'
 
@@ -414,17 +414,38 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
             switch (data.response.metadata?.task) {
                 case "feedback":
-                    if (responseString.toLowerCase().includes("none")) return; // Someone didn't finish talking
-
-                    setModelResponses(prev => [...prev, {
-                        task: "feedback",
-                        response: JSON.parse(responseString) as FeedbackResponse,
-                    }]);
+                    try {
+                        const feedbackResponse = JSON.parse(responseString) as FeedbackResponse;
+                        const targetQuestionIndex = analysisQuestionIndexRef.current;
+                        if (targetQuestionIndex === null) {
+                            console.error("No question index stored for feedback response");
+                            return;
+                        }
+                        
+                        // Update the sessionProtocol with the feedback for the stored question index
+                        setSessionProtocol(prev => 
+                            prev.map((q, index) => 
+                                index === targetQuestionIndex 
+                                    ? { 
+                                        ...q, 
+                                        feedback: {
+                                            summary: q.feedback 
+                                                ? [...q.feedback.summary, ...feedbackResponse.summary]
+                                                : feedbackResponse.summary,
+                                            informationGap: feedbackResponse.informationGap
+                                        } 
+                                    } 
+                                    : q
+                            )
+                        );
+                    } catch (error) {
+                        console.error("Error parsing feedback response:", error);
+                    }
                     break;
 
                 case "analysis":
                     try {
-                        const analysisResponse = JSON.parse(responseString);
+                        const analysisResponse = JSON.parse(responseString) as AnalysisResponse;
                         
                         // Use the stored question index instead of current selectedQuestion
                         const targetQuestionIndex = analysisQuestionIndexRef.current;
