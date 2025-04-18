@@ -5,19 +5,11 @@
 //     feedbackFor: "interviewer" | "interviewee"; // Whether the feedback is for the interviewer or the interviewee, based on whether a question was asked or answered
 // }
 
-type FeedbackResponse = 
-  | {
-      feedbackFor: "interviewer";
-      evaluation: "good" | "warning";
-      keywords: string;
-      tip: string;
-    }
-  | {
-      feedbackFor: "interviewee";
-      evaluation: "good" | "warning" | "probing";
-      keywords: string;
-      tip: string;
-    };
+type FeedbackResponse = {
+    summary: string[];
+    informationGap: string[];
+    followUp: string;
+}
 
 type FollowUpResponse = string;
 
@@ -25,7 +17,8 @@ type RephraseResponse = string;
 
 type AnalysisResponse = {
   summary: string[];
-  informationGap: string;
+  informationGap: string[];
+  followUp: string;
 };
 
 type TaskResponse = FeedbackResponse | FollowUpResponse | RephraseResponse | AnalysisResponse;

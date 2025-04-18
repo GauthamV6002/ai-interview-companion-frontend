@@ -78,22 +78,10 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                             </div>
                                         </>
                                     ) : (
-                                        <>
-                                            <div className="mb-2">
-                                                <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
-                                                <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
-                                            </div>
-                                            {question.feedback.followUpSuggestions && question.feedback.followUpSuggestions.length > 0 && (
-                                                <div className="mt-2">
-                                                    <p className="text-sm font-semibold text-blue-400">Follow-up Suggestions:</p>
-                                                    <ul className="list-disc pl-4 text-sm text-white/80">
-                                                        {question.feedback.followUpSuggestions.map((suggestion, index) => (
-                                                            <li key={index}>{suggestion}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </>
+                                        <div className="mb-2">
+                                            <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
+                                            <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
+                                        </div>
                                     )}
                                 </div>
                             )}
