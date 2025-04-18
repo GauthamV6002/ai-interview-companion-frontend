@@ -481,6 +481,13 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                             return;
                         }
                         
+                        // Handle empty information gap for analysis
+                        const analysisInformationGap = !analysisResponse.informationGap || analysisResponse.informationGap.length === 0
+                            ? ["No information gap identified"]
+                            : Array.isArray(analysisResponse.informationGap) 
+                                ? analysisResponse.informationGap 
+                                : [analysisResponse.informationGap];
+                        
                         // Update the sessionProtocol with the analysis feedback for the stored question index
                         setSessionProtocol(prev => {
                             console.log('Updating sessionProtocol for question index:', targetQuestionIndex);
@@ -491,10 +498,10 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                                         ...q, 
                                         feedback: {
                                             summary: q.feedback 
-                                                ? [...q.feedback.summary, ...analysisResponse.summary]
-                                                : analysisResponse.summary,
-                                            informationGap: analysisResponse.informationGap,
-                                            followUp: analysisResponse.followUp
+                                                ? [...q.feedback.summary, ...(analysisResponse.summary || [])]
+                                                : (analysisResponse.summary || []),
+                                            informationGap: analysisInformationGap,
+                                            followUp: analysisResponse.followUp || ""
                                         } 
                                     } 
                                     : q;
