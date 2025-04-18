@@ -642,7 +642,11 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                 }
 
                 if (data.type === "input_audio_buffer.committed") {
-                    if (configurationMode === "responsive" || configurationMode === "full") handleGetFeedback();
+                    if (configurationMode === "responsive" || configurationMode === "full") {
+                        // Set the feedback question index to the currently selected question
+                        feedbackQuestionIndexRef.current = selectedQuestion;
+                        handleGetFeedback();
+                    }
                 }
 
                 if (data.type === "conversation.item.input_audio_transcription.completed") {
