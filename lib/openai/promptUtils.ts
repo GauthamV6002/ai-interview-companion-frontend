@@ -32,47 +32,109 @@ const getSystemPrompt = (protocolString: string) => {
     // }
 
 }
-
-
-const getAIFeedbackPrompt = () => {
+const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, currentInformation: string) => {
     return (
         `
-        **This is the "feedback" prompt.**
+        You are assisting an interviewer conducting an interview based on a predefined protocol provided in JSON format: ${protocolString}. The protocol includes a rough outline of questions or topics to cover, indicating the overall research objective. The interviewer should generally follow this outline but may adapt based on context.
 
-        IMPORTANT:
-        Never include quotes.
-        When receiving an input, ask yourself if the person has finished speaking. If not, respond only with the word "none" and nothing else.
-        If the person has finished speaking, ask yourself if the most recent bit of input was either an interviewer asking a question to an interviewee, or an interviewee responding to the last question asked by the interviewer.
-        If it was neither, respond only with the word "none" and nothing else. 
+        The current focus is on the target question: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty.
 
-        If the last bit of input was an interviewer asking a question to an interviewee, evaluate the question whether has any issues using these criteria:
-        1. Closed-ended? | Leading? | Not aligning with protocol?
-        2. Not clearly phrased? Multiple questions in one?
+        Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information. 
+        
+        Provide the following feedback to the interviewer in JSON format:
+   
+        1. Summary
+        - Extract 0 to 3 key pieces of new information from the latest answer.
+        - Each piece must be a keyword or short phrase (max 10 words).
+        - Include only content relevant to the target question and protocol’s questions/topics.
+        - Exclude information already in the existing information summary.
 
-        Don't be too nice.
+        2. Information Gap Analysis
 
-        Generate feedback in this JSON format: 
+        - Assess what’s missing, unclear, or worth exploring further based on the protocol, target question, and existing information.
+        - If gaps exist, provide 1 to 2 keywords or short phrases (max 10 words each), each describing a distinct gap.
+        - If no gaps remain, use an empty array [].
+
+        3. Follow-up Suggestion
+
+        - If gaps exist, suggest a follow-up question (max 15 words) to explore the gaps.
+        - If no gaps remain, state "Proceed to the next question."
+
+        Summary must reflect new, relevant information only.
+        Information gap analysis must align with protocol, target question, and existing information.
+        Follow-up suggestion must aim to collect more information about the gaps if they exist.
+        
+        Provide feedback in this JSON format:
         {
-            "evaluation": "good" | "warning"; // For questions: "good" if well-formed, "warning" if issues are found  
-            "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.  
-            "tip": string; // Actionable tip to improve the question within 12 words  
-            "feedbackFor": "interviewer";  
+        "summary": [
+            "keyword/phrase 1",
+            "keyword/phrase 2",
+            "keyword/phrase 3"
+        ], // An array of up to 3 strings. Use fewer if less information is relevant.
+        "informationGap": [
+            "keyword/phrase 1",
+            "keyword/phrase 2"
+        ], // An array of up to 2 strings. Use fewer if fewer information gaps are found.
+        "followUp": string // A ready-to-use follow-up question within 15 words or "Proceed to the next question".
         }
 
-        If the last bit of input was an interviewee responding to the last question asked by the interviewer, evaluate the response using these criteria:
-        1. Relevance: Related to research questions and context?
-        2. Clarity: Any ambiguous points needing clarification?
-        3. Richness: Any nuances or interesting inforamtion related to the research objectives to explore?
+        Deliver only the JSON response, without comments or rationale.
+        Ensure the response is valid JSON.
+        ,
+        `).replace("\t", "")
+}
 
-        Generate feedback in this JSON format: 
-        {
-            "evaluation": "warning" | "probing" | "good"; // For answers: "warning" if the answer having relavance or clarity issues, "probing" if worth exploring, "good" for no action needed.
-            "keywords": string; // 2-3 keywords summarizing the judgment, comma-separated. Must be keywords, not a sentence.
-            "tip": string; // Actionable tip to handle the answer with issue or worth exploring, within 12 words
-            "feedbackFor": "interviewee";
+const getAIFeedbackPrompt = (protocolString: string, currentQuestion: string, currentInformation: string) => {
+    return (
+        `
+        You are assisting an interviewer conducting an interview based on a predefined protocol provided in JSON format: ${protocolString}. The protocol includes a rough outline of questions or topics to cover, indicating the overall research objective. The interviewer should generally follow this outline but may adapt based on context.
+
+        The current focus is on the target question: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty.
+
+        Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information.
+
+        During the conversation, for each new message:
+        - If the speaker has not finished their message, respond only with "none".
+        - If the most recent message is from the interviewer, respond only with "none".
+        - If the most recent message is not part of the interview conversation, respond only with "none".
+        - If the most recent message is the interviewee responding to the last question asked by the interviewer, provide feedback in the following JSON format:
+
+        1. Summary
+        - Extract 0 to 3 key pieces of new information from the latest answer.
+        - Each piece must be a keyword or short phrase (max 10 words).
+        - Include only content relevant to the target question and protocol’s questions/topics.
+        - Exclude information already in the existing information summary.
+
+        2. Information Gap Analysis
+
+        - Assess what’s missing, unclear, or worth exploring further based on the protocol, target question, and existing information.
+        - If gaps exist, provide 1 to 2 keywords or short phrases (max 10 words each), each describing a distinct gap.
+        - If no gaps remain, use an empty array [].
+
+        3. Follow-up Suggestion
+
+        - If gaps exist, suggest a follow-up question (max 15 words) to explore the gaps.
+        - If no gaps remain, state "Proceed to the next question."
+
+        Summary must reflect new, relevant information only.
+        Information gap analysis must align with protocol, target question, and existing information.
+        Follow-up suggestion must aim to collect more information about the gaps if they exist.
+
+        Provide the feedback in this JSON format: {
+        "summary": [
+            "keyword/phrase 1",
+            "keyword/phrase 2",
+            "keyword/phrase 3"
+        ], // An array of up to 3 strings. Use fewer if less information is relevant.
+        "informationGap": [
+            "keyword/phrase 1",
+            "keyword/phrase 2"
+        ], // An array of up to 2 strings. Use fewer if fewer information gaps are found.
+        "followUp": string // A ready-to-use follow-up question within 15 words or "Proceed to the next question".
         }
-         
-         Deliver only the final JSON response. Do not include any comments in the JSON response. Ensure it can be parsed as valid JSON.",
+
+        Deliver only the JSON response, without comments or rationale.
+        Ensure the response is valid JSON.
         `).replace("\t", "")
 }
 
@@ -154,47 +216,7 @@ const getSystemPrompt = (protocolString: string) => {
 
 }
 */
-const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, currentInformation: string) => {
-    return (
-        `
-        You are assisting an interviewer conducting an interview based on a predefined protocol provided in JSON format: ${protocolString}. The protocol includes a rough outline of questions or topics to cover, indicating the overall research objective. The interviewer should generally follow this outline but may adapt based on context.
-        
-        The current focus is on the target question: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty.
-        
-        Your task is to analyze the interviewee's latest answer using the protocol's questions or topics, the current target question, and the existing information. Provide summary and information gap analysis to the interviewer in JSON format.
-   
-        1. Summary
-        - Extract up to 3 key pieces of new information from the latest answer.
-        - Each piece must be a keyword or short phrase (max 10 words), not a full sentence.
-        - Include only content relevant to the target question and protocol's questions/topics.
-        - Exclude information already in the existing information summary.
 
-        2. Information Gap Analysis
-
-        Assess what's missing, unclear, or worth exploring further, based on the protocol questions/topics (reflecting research interests), current target question, and existing information for the target question.
-
-        - If gaps exist, suggest an open-ended follow-up direction with a short explanation and justification.
-        - If no gaps remain and the topic is well-covered, recommend moving to the next question.
-        - Limit analysis to 20 words.
-
-        Summary must reflect new, relevant information only.
-        Information gap analysis must align with protocol, target question, and existing information.
-
-        Provide feedback in this JSON format:
-        {
-        "summary": [
-            "keyword/phrase 1",
-            "keyword/phrase 2",
-            "keyword/phrase 3"
-        ], // An array of up to 3 strings. Use fewer if less information is relevant.
-        "informationGap": string //  Analysis, follow-up direction or instruction to proceed within 15 words.
-        }
-
-        Deliver only the JSON response, without comments or rationale.
-        Ensure the response is valid JSON.
-        ,
-        `).replace("\t", "")
-}
 /*
 const getAIFeedbackPrompt = (protocolString: string) => {
     return (

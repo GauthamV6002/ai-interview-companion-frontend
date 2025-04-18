@@ -62,18 +62,39 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                             {/* Display feedback if available */}
                             {question.feedback && (
                                 <div className="mt-2 p-2 bg-gray-800 rounded-md">
-                                    <div className="mb-1">
-                                        <p className="text-sm font-semibold text-blue-400">Summary:</p>
-                                        <ul className="list-disc pl-4 text-sm text-white/80">
-                                            {question.feedback.summary.map((item, index) => (
-                                                <li key={index}>{item}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    <div className="mt-2">
-                                        <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
-                                        <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
-                                    </div>
+                                    {configurationMode === 'interactive' ? (
+                                        <>
+                                            <div className="mb-1">
+                                                <p className="text-sm font-semibold text-blue-400">Summary:</p>
+                                                <ul className="list-disc pl-4 text-sm text-white/80">
+                                                    {question.feedback.summary.map((item, index) => (
+                                                        <li key={index}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                            <div className="mt-2">
+                                                <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
+                                                <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="mb-2">
+                                                <p className="text-sm font-semibold text-blue-400">Information Gap:</p>
+                                                <p className="text-sm text-white/80">{question.feedback.informationGap}</p>
+                                            </div>
+                                            {question.feedback.followUpSuggestions && question.feedback.followUpSuggestions.length > 0 && (
+                                                <div className="mt-2">
+                                                    <p className="text-sm font-semibold text-blue-400">Follow-up Suggestions:</p>
+                                                    <ul className="list-disc pl-4 text-sm text-white/80">
+                                                        {question.feedback.followUpSuggestions.map((suggestion, index) => (
+                                                            <li key={index}>{suggestion}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </Card>
