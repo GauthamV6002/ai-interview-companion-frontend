@@ -391,7 +391,6 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
     const handleResponseDone = (response: string) => {
         if (!responseInProgress) return;
-        setIsResponseInProgress(false);
         setResponseInProgress(false);
 
         try {
