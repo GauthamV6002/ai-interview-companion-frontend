@@ -94,10 +94,10 @@ const getAIFeedbackPrompt = (protocolString: string, currentQuestion: string, cu
         Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information.
 
         During the conversation, for each new message:
-        - If the speaker has not finished their message, respond only with "none".
-        - If the most recent message is not part of the interview conversation, respond only with "none".
-        - If the most recent message is from the interviewer asking a question to the interviewee, respond only with "none".
-        - If the most recent message is the interviewee responding to the last question asked by the interviewer, provide feedback in the following JSON format:
+        - If the speaker pauses, wait up to 1 second (1000 ms) for additional speech; if new words arrive in that time, it means the speaker is still speaking, so respond only with "none".
+        - If the speaker has finished speaking, and the most recent message is not part of the interview conversation, respond only with "none".
+        - If the speaker has finished speaking, and the most recent message is from the interviewer asking a question to the interviewee, respond only with "none".
+        - If the speaker has finished speaking, and the most recent message is the interviewee responding to the last question asked by the interviewer, provide feedback in the following JSON format:
 
         1. Summary
         - Extract 0 to 3 key pieces of new information from the latest answer.

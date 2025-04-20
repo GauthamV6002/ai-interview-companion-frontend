@@ -37,8 +37,7 @@ const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress,
                         Give me Analysis
                     </Button>
                 </div>
-                :
-                <p className='text-white/60'>Interactive mode not enabled</p>}
+                : null}
             <div className='flex items-center gap-4'>
                 <span className='font-mono text-lg'>{elapsedTime}</span>
                 {isRecording && (
