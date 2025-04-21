@@ -54,6 +54,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     // A copy of the protocol to be used for the session, so the original is not modified
     const [sessionProtocol, setSessionProtocol] = useState([...protocol]);
     const [selectedQuestion, setSelectedQuestion] = useState(0);
+    // Create a ref to always track the latest selectedQuestion value
+    const selectedQuestionRef = useRef<number>(0);
     // Replace state with ref for immediate access
     const pauseStartTimeRef = useRef<number | null>(null);
 
@@ -605,18 +607,26 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
         }]);
     }
 
+    // Update selectedQuestionRef whenever selectedQuestion changes
+    useEffect(() => {
+        selectedQuestionRef.current = selectedQuestion;
+        console.log('selectedQuestionRef updated to:', selectedQuestion);
+    }, [selectedQuestion]);
 
     const handleGetFeedback = () => {
+        // Use the ref value instead of the state value to get the most current selection
+        const currentSelectedQuestion = selectedQuestionRef.current;
         // Store the current question index for feedback
-        feedbackQuestionIndexRef.current = selectedQuestion;
-        console.log('Setting feedbackQuestionIndexRef to:', selectedQuestion);
+        feedbackQuestionIndexRef.current = currentSelectedQuestion;
+        console.log('Setting feedbackQuestionIndexRef to:', currentSelectedQuestion);
         
         // Get the current question text
-        const currentQuestion = sessionProtocol[selectedQuestion].question;
+        const currentQuestion = sessionProtocol[currentSelectedQuestion].question;
+        console.log("Getting feedback for question:", currentSelectedQuestion, "currentQuestion:", currentQuestion);
         
         // Get existing feedback summary if available, otherwise empty string
-        const currentInformation = sessionProtocol[selectedQuestion].feedback 
-            ? sessionProtocol[selectedQuestion].feedback.summary.join(", ") 
+        const currentInformation = sessionProtocol[currentSelectedQuestion].feedback 
+            ? sessionProtocol[currentSelectedQuestion].feedback.summary.join(", ") 
             : "";
           
         // Use the feedback prompt to get feedback focused on the current question
@@ -627,19 +637,21 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
     }
 
     const handleGetAnalysis = () => {
+        // Use the ref value instead of the state value
+        const currentSelectedQuestion = selectedQuestionRef.current;
         // Store the current question index for analysis
-        analysisQuestionIndexRef.current = selectedQuestion;
-        console.log('Setting analysisQuestionIndexRef to:', selectedQuestion);
+        analysisQuestionIndexRef.current = currentSelectedQuestion;
+        console.log('Setting analysisQuestionIndexRef to:', currentSelectedQuestion);
         
         // Get the current question text
-        const currentQuestion = sessionProtocol[selectedQuestion].question;
+        const currentQuestion = sessionProtocol[currentSelectedQuestion].question;
         
         // Get existing feedback summary if available, otherwise empty string
-        const currentInformation = sessionProtocol[selectedQuestion].feedback 
-            ? sessionProtocol[selectedQuestion].feedback.summary.join(", ") 
+        const currentInformation = sessionProtocol[currentSelectedQuestion].feedback 
+            ? sessionProtocol[currentSelectedQuestion].feedback.summary.join(", ") 
             : "";
         
-        console.log("Give Me Analysis clicked - selectedQuestion:", selectedQuestion, "currentQuestion:", currentQuestion);
+        console.log("Give Me Analysis clicked - selectedQuestion:", currentSelectedQuestion, "currentQuestion:", currentQuestion);
         
         // Use the analysis prompt to get feedback focused on the current question
         getTaskResponse(getAIAnalysisPrompt(protocolString, currentQuestion, currentInformation), "analysis");
@@ -674,9 +686,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
                 if (data.type === "input_audio_buffer.committed") {
                     if (configurationMode === "responsive" || configurationMode === "full") {
-                        // Set the feedback question index to the currently selected question
-                        feedbackQuestionIndexRef.current = selectedQuestion;
-                        console.log('Setting feedbackQuestionIndexRef to:', selectedQuestion, 'for automatic feedback');
+                        // Don't set the feedback question index here since we'll use the ref in handleGetFeedback
+                        console.log('Auto-triggering feedback for current question:', selectedQuestionRef.current);
                         handleGetFeedback();
                     }
                 }
@@ -710,7 +721,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
                     console.log('PAUSE START TIME SET TO', currentTime);
                 }
 
-                console.log("EVENT", data);
+                // Delta events are too verbose, so we only log the non-delta events
+                if(data.type !== "response.text.delta") console.log("EVENT", data);
             });
 
             // Set session active when the data channel is opened
