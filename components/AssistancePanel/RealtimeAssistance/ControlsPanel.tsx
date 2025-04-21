@@ -22,22 +22,15 @@ type Props = {
 const ControlsPanel = ({ configurationMode, isSessionActive, responseInProgress, handleGetAnalysis, stopSession, startSession, elapsedTime, onShowInstructions, isRecording }: Props) => {
     return (
         <Card className='p-4 flex justify-between items-center'>
-            {configurationMode === "interactive" || configurationMode === "full" ?
-                <div className='flex gap-2'>
-                    {/* <Button onClick={generateTextResponse}>Test CMD</Button>
-                    <Button disabled={!isSessionActive || responseInProgress} onClick={() => {
-                        // This will be handled by the parent component
-                        window.dispatchEvent(new CustomEvent('getFollowUp'));
-                    }}>
-                        {responseInProgress && <LoaderCircle className='size-4 animate-spin mr-2' />} 
-                        Generate follow-up
-                    </Button> */}
+            <div className='flex items-center gap-4'>
+                {configurationMode === "interactive" || configurationMode === "full" ? (
                     <Button disabled={!isSessionActive || responseInProgress} onClick={handleGetAnalysis}>
                         {responseInProgress && <LoaderCircle className='size-4 animate-spin mr-2' />} 
                         Give me Analysis
                     </Button>
-                </div>
-                : null}
+                ) : null}
+            </div>
+            
             <div className='flex items-center gap-4'>
                 <span className='font-mono text-lg'>{elapsedTime}</span>
                 {isRecording && (
