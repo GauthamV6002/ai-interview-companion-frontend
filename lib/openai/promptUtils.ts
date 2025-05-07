@@ -52,6 +52,7 @@ const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, cu
         - Assess what’s missing, unclear, or worth exploring further based on the protocol, target question, and existing information.
         - If any gaps exist, or anything worth exploring further, provide 1 to 2 keywords or short phrases (max 10 words each), each describing a distinct gap or a probeable aspect of the interviewee's answer.
         - If no gaps remain and nothing worth exploring further, use an empty array [].
+        - As you are expected to support the interviewers to collect richer and more insightful information, you must be careful when providing information gap analysis as empty array.
 
         3. Follow-up Suggestion
 
@@ -106,6 +107,7 @@ const getAIFeedbackPrompt = (protocolString: string, currentQuestion: string, cu
         - Assess what’s missing, unclear, or worth exploring further based on the protocol, target question, and existing information.
         - If gaps exist, or anything worth exploring further, provide 1 to 2 keywords or short phrases (max 10 words each), each describing a distinct gap or a probeable aspect of the interviewee's answer.
         - If no gaps remain and nothing worth exploring further, use an empty array [].
+        - As you are expected to support the interviewers to collect richer and more insightful information, you must be careful when providing information gap analysis as empty array.
 
         3. Follow-up Suggestion
 
