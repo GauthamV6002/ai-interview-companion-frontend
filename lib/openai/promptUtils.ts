@@ -56,8 +56,7 @@ const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, cu
 
         3. Follow-up Suggestion
 
-        - If gaps exist, or anything worth exploring further, suggest a follow-up question (max 15 words) to explore the gaps.
-        - If no gaps remain and nothing worth exploring further, state "Proceed to the next question."
+        - State "Proceed to the next question."
 
         Summary must reflect new, relevant information only.
         Information gap analysis must align with protocol, target question, and existing information.
@@ -88,35 +87,26 @@ const getAIFeedbackPrompt = (protocolString: string, currentQuestion: string, cu
         `
         You are assisting an interviewer conducting an interview based on a predefined protocol provided in JSON format: ${protocolString}. The protocol includes a rough outline of questions or topics to cover, indicating the overall research objective. The interviewer should generally follow this outline but may adapt based on context.
 
-        Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information. The current target question is: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty. Based on your analysis, you must provide feedback to the interviewer to help them collect richer and more insightful information.
+        Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information. The current target question is: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty. 
 
-        Therefore, during the conversation, for each input:
+        Therefore, during the conversation, for each input, you must check the following before providing feedback:
         - If the speaker pauses and then continues speaking, you must respond only with "none".
         - If you confirm the speaker has finished speaking, you must check whether the most recent message is part of the interview conversation. If not, you must respond only with "none".
-        - If you confirm the speaker has finished speaking, you must check whether the most recent message is from the interviewer asking a question to the interviewee. If so, you must respond only with "none".
+        - If you confirm the most recent message is part of the interview conversation, you must check whether it is the interviewer asking a question to the interviewee. If so, you must respond only with "none".
         - Only if you confirm the speaker has finished speaking, and the most recent message is the interviewee responding to the last question asked by the interviewer, you should provide feedback in the following JSON format:
 
         1. Summary
-        - Extract 0 to 3 key pieces of new information from the latest answer.
-        - Each piece must be a keyword or short phrase (max 10 words).
-        - Include only content relevant to the target question and protocol’s questions/topics.
-        - Exclude information already in the existing information summary.
+        - Use an empty array [].
 
         2. Information Gap Analysis
 
-        - Assess what’s missing, unclear, or worth exploring further based on the protocol, target question, and existing information.
-        - If gaps exist, or anything worth exploring further, provide 1 to 2 keywords or short phrases (max 10 words each), each describing a distinct gap or a probeable aspect of the interviewee's answer.
-        - If no gaps remain and nothing worth exploring further, use an empty array [].
+        - Use an empty array [].
 
         3. Follow-up Suggestion
 
-        - If gaps exist, or anything worth exploring further, suggest a follow-up question (max 15 words) to explore the gaps.
-        - If no gaps remain and nothing worth exploring further, state "Proceed to the next question."
-        - As you are expected to support the interviewers to collect richer and more insightful information, you must be careful when providing follow-up suggestion as "Proceed to the next question."
-
-        Summary must reflect new, relevant information only.
-        Information gap analysis must align with protocol, target question, and existing information.
-        Follow-up suggestion must aim to collect more information about the gaps if they exist.
+        - Assess the interviewee's response on whether there is anything missing, unclear, or worth exploring further based on the protocol, target question, and existing information. You are expected to support the interviewers to collect richer and more insightful information
+        - If anything is missing, unclear, or worth exploring further, suggest a follow-up question (max 15 words) to explore the gaps.
+        - If no gaps remain and nothing worth exploring further, state "Proceed to the next question." You must be careful when providing this statement as it may lead to the interviewer to skip the current question and move to the next one.
 
         Provide the feedback in this JSON format: {
         "summary": [
