@@ -136,20 +136,6 @@ const ProtocolPanel = ({ sessionProtocol, selectedQuestion, setSelectedQuestion,
                                     )}
                                     {configurationMode === 'responsive' && (
                                         <div className="flex flex-col gap-2">
-                                            {question.feedback.informationGap && (
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="text-sm font-medium text-purple-400">Information Gap</div>
-                                                    {Array.isArray(question.feedback.informationGap) ? (
-                                                        <ul className="list-disc pl-4 text-sm text-white/90">
-                                                            {question.feedback.informationGap.map((item, index) => (
-                                                                <li key={index}>{item}</li>
-                                                            ))}
-                                                        </ul>
-                                                    ) : (
-                                                        <div className="text-sm text-white/90">{question.feedback.informationGap}</div>
-                                                    )}
-                                                </div>
-                                            )}
                                             {question.feedback.followUp && (
                                                 <div className="flex flex-col gap-1">
                                                     <div className="text-sm font-medium text-orange-400">Follow-up Suggestion</div>
