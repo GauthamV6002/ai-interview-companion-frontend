@@ -37,7 +37,7 @@ const getAIAnalysisPrompt = (protocolString: string, currentQuestion: string, cu
         `
         You are assisting an interviewer conducting an interview based on a predefined protocol provided in JSON format: ${protocolString}. The protocol includes a rough outline of questions or topics to cover, indicating the overall research objective. The interviewer should generally follow this outline but may adapt based on context.
 
-        Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information. The current target question is: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty. Based on your analysis, you must provide feedback to the interviewer to help them collect richer and more insightful information.
+        Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information. The current target question is: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty. 
         
         Provide the following feedback to the interviewer in JSON format:
    
@@ -91,9 +91,9 @@ const getAIFeedbackPrompt = (protocolString: string, currentQuestion: string, cu
         Your task is to analyze the interviewee’s latest answer using the protocol’s questions or topics, the current target question, and the existing information. The current target question is: ${currentQuestion}. Existing information collected for this question is: ${currentInformation}, which may be empty. Based on your analysis, you must provide feedback to the interviewer to help them collect richer and more insightful information.
 
         Therefore, during the conversation, for each input:
-        - If the speaker pauses, you must wait up to 1 second (1000 ms) for additional speech; if new words arrive in that time, it means the speaker is still speaking, so respond only with "none".
-        - If you confirm the speaker has finished speaking, you must check whether the most recent message is part of the interview conversation or not. If not, you must respond only with "none".
-        - If you confirm the speaker has finished speaking, and you also confirm whether the most recent message is from the interviewer asking a question to the interviewee or not. If so, you must respond only with "none".
+        - If the speaker pauses and then continues speaking, you must respond only with "none".
+        - If you confirm the speaker has finished speaking, you must check whether the most recent message is part of the interview conversation. If not, you must respond only with "none".
+        - If you confirm the speaker has finished speaking, you must check whether the most recent message is from the interviewer asking a question to the interviewee. If so, you must respond only with "none".
         - Only if you confirm the speaker has finished speaking, and the most recent message is the interviewee responding to the last question asked by the interviewer, you should provide feedback in the following JSON format:
 
         1. Summary
