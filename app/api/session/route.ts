@@ -16,7 +16,8 @@ export async function GET(req: Request) {
             // "Access-Control-Allow-Headers": "Content-Type, Authorization" // Allow specific headers
         },
         body: JSON.stringify({
-            model: "gpt-4o-realtime-preview",
+            // model: "gpt-4o-realtime-preview",
+            model: "gpt-4o-mini-realtime-preview",
             voice: "verse",
             input_audio_transcription: {
                 model: "whisper-1"

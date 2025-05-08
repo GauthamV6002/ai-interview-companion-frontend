@@ -240,7 +240,8 @@ const RealtimeAssistancePanel = ({ localStream, remoteAudioStream, mixedAudioStr
 
             // Connect to OpenAI
             const baseUrl = "https://api.openai.com/v1/realtime";
-            const model = "gpt-4o-realtime-preview";
+            // const model = "gpt-4o-realtime-preview";
+            const model = "gpt-4o-mini-realtime-preview";
             const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
                 method: "POST",
                 body: offer.sdp,
